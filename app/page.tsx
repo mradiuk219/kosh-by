@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 
-type Media = { title: string; creator: string; platform: string; category: string; image?: string; logoText?: string; background: string; url?: string; featured?: boolean };
+type Media = { title: string; creator: string; platform: string; category: string; image?: string; logoText?: string; background: string; url?: string; featured?: boolean; addedAt?: string };
 
 const bg = {
   culture: 'https://images.unsplash.com/photo-1564399579883-451a5d44ec08?auto=format&fit=crop&w=900&q=78',
@@ -65,7 +65,7 @@ const socialMedia: Media[] = [
   })),
 ];
 
-const media = [...youtubeMedia, ...socialMedia];
+const media = [...youtubeMedia, ...socialMedia].map((item) => item.platform === 'Instagram' ? { ...item, addedAt: '2026-08-29' } : item);
 const filters = ['Усё', 'YouTube', 'Instagram', 'TikTok', 'Twitch'];
 const platformCounts = Object.fromEntries(filters.slice(1).map((platform) => [platform, media.filter((item) => item.platform === platform).length]));
 const heroStats = [
@@ -85,6 +85,23 @@ function shuffleMedia(items: Media[]) {
   }
   return shuffled;
 }
+
+function getFreshMedia(items: Media[]) {
+  const datedItems = items.filter((item) => item.addedAt);
+  if (!datedItems.length) return items.slice(-4);
+
+  const latestDate = datedItems.reduce((latest, item) => item.addedAt! > latest ? item.addedAt! : latest, '');
+  const latestDayItems = items.filter((item) => item.addedAt === latestDate);
+  if (latestDayItems.length > 4) return latestDayItems;
+
+  return items
+    .map((item, index) => ({ item, index }))
+    .sort((a, b) => (a.item.addedAt ?? '').localeCompare(b.item.addedAt ?? '') || a.index - b.index)
+    .slice(-4)
+    .map(({ item }) => item);
+}
+
+const freshMedia = getFreshMedia(media);
 
 function PlatformIcon({ platform }: { platform: string }) {
   if (platform === 'YouTube') return <Clapperboard className="size-3.5" />;
@@ -118,6 +135,7 @@ function MediaCard({ item }: { item: Media }) {
 
 function CarouselRow({ items }: { items: Media[] }) {
   const rowRef = useRef<HTMLDivElement>(null);
+  const showControls = items.length > 4;
 
   const scroll = (direction: -1 | 1) => {
     const row = rowRef.current;
@@ -130,12 +148,14 @@ function CarouselRow({ items }: { items: Media[] }) {
       <div ref={rowRef} className="flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth pb-5 pr-10 touch-pan-x [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {items.map((item) => <MediaCard key={`${item.platform}-${item.title}`} item={item} />)}
       </div>
-      <Button type="button" size="icon" variant="ghost" aria-label="Гартаць налева" onClick={() => scroll(-1)} className="absolute left-2 top-1/2 z-20 hidden size-11 -translate-y-1/2 rounded-full border border-white/15 bg-black/75 text-white shadow-xl backdrop-blur hover:bg-black/95 sm:grid">
-        <ChevronLeft className="size-6" />
-      </Button>
-      <Button type="button" size="icon" variant="ghost" aria-label="Гартаць направа" onClick={() => scroll(1)} className="absolute right-2 top-1/2 z-20 hidden size-11 -translate-y-1/2 rounded-full border border-white/15 bg-black/75 text-white shadow-xl backdrop-blur hover:bg-black/95 sm:grid">
-        <ChevronRight className="size-6" />
-      </Button>
+      {showControls && <>
+        <Button type="button" size="icon" variant="ghost" aria-label="Гартаць налева" onClick={() => scroll(-1)} className="absolute left-2 top-1/2 z-20 hidden size-11 -translate-y-1/2 rounded-full border border-white/15 bg-black/75 text-white shadow-xl backdrop-blur hover:bg-black/95 sm:grid">
+          <ChevronLeft className="size-6" />
+        </Button>
+        <Button type="button" size="icon" variant="ghost" aria-label="Гартаць направа" onClick={() => scroll(1)} className="absolute right-2 top-1/2 z-20 hidden size-11 -translate-y-1/2 rounded-full border border-white/15 bg-black/75 text-white shadow-xl backdrop-blur hover:bg-black/95 sm:grid">
+          <ChevronRight className="size-6" />
+        </Button>
+      </>}
     </div>
   );
 }
@@ -213,7 +233,7 @@ export default function Home() {
         {results.length ? <><CarouselRow items={results} /><div className="mt-3 flex justify-center"><Button size="lg" className="h-11 rounded-full bg-primary px-7 font-bold" onClick={() => { setQuery(''); setFilter('Усё'); document.querySelector('#catalog')?.scrollIntoView({ behavior: 'smooth' }); }}>Адкрыць каталог <ArrowRight className="size-4" /></Button></div></> : <div className="rounded-3xl border border-dashed border-white/12 bg-white/3 px-6 py-14 text-center"><Search className="mx-auto mb-4 size-7 text-white/30" /><h3 className="font-bold">Нічога не знайшлося</h3><p className="mt-2 text-sm text-white/50">Паспрабуй іншыя словы або абяры «Усё».</p><Button variant="link" className="mt-2 text-secondary" onClick={() => { setQuery(''); setFilter('Усё'); }}>Скінуць пошук</Button></div>}
       </section>
 
-      <section id="new" className="mx-auto max-w-[1500px] px-5 py-12 lg:px-10"><div className="mb-6 flex items-end justify-between"><div><p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-primary">Свежае ў кошы</p><h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Новыя знаходкі</h2></div><button className="hidden items-center gap-1 text-sm font-semibold text-white/55 sm:flex">Глядзець усе <ChevronRight className="size-4" /></button></div><CarouselRow items={media.slice(4)} /></section>
+      <section id="new" className="mx-auto max-w-[1500px] px-5 py-12 lg:px-10"><div className="mb-6 flex items-end justify-between"><div><p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-primary">Свежае ў кошы</p><h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Новыя знаходкі</h2></div><button className="hidden items-center gap-1 text-sm font-semibold text-white/55 sm:flex">Глядзець усе <ChevronRight className="size-4" /></button></div><CarouselRow items={freshMedia} /></section>
 
       <section id="about" className="mx-5 my-14 overflow-hidden rounded-[2rem] border border-white/8 bg-[radial-gradient(circle_at_15%_30%,rgba(70,131,214,.22),transparent_35%),radial-gradient(circle_at_90%_80%,rgba(233,101,42,.2),transparent_35%),#14161a] lg:mx-10"><div className="mx-auto grid max-w-5xl gap-8 px-6 py-16 text-center sm:px-12"><p className="mx-auto text-xs font-bold uppercase tracking-[0.2em] text-secondary">Супольны праект</p><h2 className="text-balance text-3xl font-black tracking-tight sm:text-5xl">Добры кантэнт ствараюць людзі</h2><p className="mx-auto max-w-2xl text-white/62">КОШ расце з вашых парад. Калі ведаеш аўтара, канал або падкаст па-беларуску — падзяліся спасылкай.</p><div><SubmitDialog /></div></div></section>
 
