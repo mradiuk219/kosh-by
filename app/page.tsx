@@ -180,6 +180,15 @@ export function MediaCard({ item, fluid = false }: { item: Media; fluid?: boolea
 function CarouselRow({ items }: { items: Media[] }) {
   const rowRef = useRef<HTMLDivElement>(null);
   const showControls = items.length > 4;
+  const itemsKey = items.map((item) => `${item.platform}:${item.url ?? item.title}`).join('|');
+
+  useEffect(() => {
+    const row = rowRef.current;
+    if (!row) return;
+    row.scrollLeft = 0;
+    const frame = requestAnimationFrame(() => { row.scrollLeft = 0; });
+    return () => cancelAnimationFrame(frame);
+  }, [itemsKey]);
 
   const scroll = (direction: -1 | 1) => {
     const row = rowRef.current;
