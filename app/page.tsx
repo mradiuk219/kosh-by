@@ -67,6 +67,7 @@ const socialMedia: Media[] = [
 
 const media = [...youtubeMedia, ...socialMedia];
 const filters = ['Усё', 'YouTube', 'Instagram', 'TikTok', 'Twitch'];
+const platformCounts = Object.fromEntries(filters.slice(1).map((platform) => [platform, media.filter((item) => item.platform === platform).length]));
 
 function PlatformIcon({ platform }: { platform: string }) {
   if (platform === 'YouTube') return <Clapperboard className="size-3.5" />;
@@ -168,17 +169,24 @@ export default function Home() {
       <section className="relative isolate min-h-[690px] pt-18">
         <img className="absolute inset-0 -z-20 h-full w-full object-cover object-center" src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=2200&q=88" alt="Ранішняе святло над краявідам" />
         <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,#111821_3%,rgba(17,24,33,.82)_36%,rgba(17,24,33,.18)_72%,rgba(17,24,33,.56)_100%),linear-gradient(0deg,#151b24_0%,transparent_58%)]" />
-        <div className="mx-auto flex min-h-[620px] max-w-[1500px] items-end px-5 pb-20 lg:px-10"><div className="max-w-2xl">
+        <div className="mx-auto flex min-h-[620px] max-w-[1500px] items-end px-5 pb-16 lg:px-10"><div className="max-w-3xl">
           <h1 className="text-balance text-5xl font-black leading-[0.94] tracking-[-0.055em] text-white sm:text-7xl">Беларускае —<br />бліжэй, чым здаецца</h1>
           <p className="mt-6 max-w-xl text-base leading-relaxed text-white/70 sm:text-lg">Відэа, падкасты, аўтары і гісторыі па-беларуску — сабраныя ў адным месцы, каб цікавае не гублялася ў стужцы.</p>
-          <div className="mt-8"><Button size="lg" className="h-11 rounded-full bg-primary px-7 font-bold" onClick={() => document.querySelector('#catalog')?.scrollIntoView({ behavior: 'smooth' })}>Адкрыць каталог <ArrowRight className="size-4" /></Button></div>
+          <div className="mt-8 grid max-w-3xl grid-cols-2 gap-2.5 sm:grid-cols-3">
+            <div className="rounded-2xl border border-white/12 bg-[#111821]/62 p-4 backdrop-blur-md"><strong className="block text-3xl font-black text-white">{media.length}</strong><span className="mt-1 block text-xs leading-tight text-white/60">Колькасьць аўтараў</span></div>
+            <div className="rounded-2xl border border-white/12 bg-[#111821]/62 p-4 backdrop-blur-md"><strong className="block text-3xl font-black text-primary">442 тыс.</strong><span className="mt-1 block text-xs leading-tight text-white/60">Найбольш падпісантаў</span></div>
+            <div className="rounded-2xl border border-white/12 bg-[#111821]/62 p-4 backdrop-blur-md"><strong className="block text-3xl font-black text-white">{platformCounts.YouTube}</strong><span className="mt-1 block text-xs leading-tight text-white/60">Аўтараў з YouTube</span></div>
+            <div className="rounded-2xl border border-white/12 bg-[#111821]/62 p-4 backdrop-blur-md"><strong className="block text-3xl font-black text-white">{platformCounts.Twitch}</strong><span className="mt-1 block text-xs leading-tight text-white/60">Аўтараў з Twitch</span></div>
+            <div className="rounded-2xl border border-white/12 bg-[#111821]/62 p-4 backdrop-blur-md"><strong className="block text-3xl font-black text-white">{platformCounts.Instagram}</strong><span className="mt-1 block text-xs leading-tight text-white/60">Аўтараў з Instagram</span></div>
+            <div className="rounded-2xl border border-white/12 bg-[#111821]/62 p-4 backdrop-blur-md"><strong className="block text-3xl font-black text-white">{platformCounts.TikTok}</strong><span className="mt-1 block text-xs leading-tight text-white/60">Аўтараў з TikTok</span></div>
+          </div>
         </div></div>
       </section>
 
       <section id="catalog" className="mx-auto max-w-[1500px] px-5 pb-12 pt-6 lg:px-10">
         <div className="mb-6 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between"><div><p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-secondary">Знайдзі сваё</p><h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Каталог КОШа</h2></div><div className="relative block sm:hidden"><Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-white/40" /><Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Шукаць кантэнт" className="h-11 border-white/10 bg-white/6 pl-9" /></div></div>
         <div className="mb-7 flex gap-2 overflow-x-auto pb-2 [scrollbar-width:none]">{filters.map((name) => <Button key={name} onClick={() => setFilter(name)} variant={filter === name ? 'secondary' : 'outline'} className={`h-9 shrink-0 rounded-full px-4 ${filter !== name ? 'border-white/10 bg-white/4 text-white/65' : ''}`}>{name}</Button>)}</div>
-        {results.length ? <CarouselRow items={results} /> : <div className="rounded-3xl border border-dashed border-white/12 bg-white/3 px-6 py-14 text-center"><Search className="mx-auto mb-4 size-7 text-white/30" /><h3 className="font-bold">Нічога не знайшлося</h3><p className="mt-2 text-sm text-white/50">Паспрабуй іншыя словы або абяры «Усё».</p><Button variant="link" className="mt-2 text-secondary" onClick={() => { setQuery(''); setFilter('Усё'); }}>Скінуць пошук</Button></div>}
+        {results.length ? <><CarouselRow items={results} /><div className="mt-3 flex justify-center"><Button size="lg" className="h-11 rounded-full bg-primary px-7 font-bold" onClick={() => { setQuery(''); setFilter('Усё'); document.querySelector('#catalog')?.scrollIntoView({ behavior: 'smooth' }); }}>Адкрыць каталог <ArrowRight className="size-4" /></Button></div></> : <div className="rounded-3xl border border-dashed border-white/12 bg-white/3 px-6 py-14 text-center"><Search className="mx-auto mb-4 size-7 text-white/30" /><h3 className="font-bold">Нічога не знайшлося</h3><p className="mt-2 text-sm text-white/50">Паспрабуй іншыя словы або абяры «Усё».</p><Button variant="link" className="mt-2 text-secondary" onClick={() => { setQuery(''); setFilter('Усё'); }}>Скінуць пошук</Button></div>}
       </section>
 
       <section id="new" className="mx-auto max-w-[1500px] px-5 py-12 lg:px-10"><div className="mb-6 flex items-end justify-between"><div><p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-primary">Свежае ў кошы</p><h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Новыя знаходкі</h2></div><button className="hidden items-center gap-1 text-sm font-semibold text-white/55 sm:flex">Глядзець усе <ChevronRight className="size-4" /></button></div><CarouselRow items={media.slice(4)} /></section>
