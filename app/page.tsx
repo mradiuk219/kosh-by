@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowRight, Camera, Check, ChevronLeft, ChevronRight, Clapperboard, Menu, Mic2, Play, Radio, Search, Send } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -76,6 +76,15 @@ const heroStats = [
   { value: platformCounts.Instagram, label: 'Аўтараў з Instagram' },
   { value: platformCounts.TikTok, label: 'Аўтараў з TikTok' },
 ];
+
+function shuffleMedia(items: Media[]) {
+  const shuffled = [...items];
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const randomIndex = Math.floor(Math.random() * (index + 1));
+    [shuffled[index], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[index]];
+  }
+  return shuffled;
+}
 
 function PlatformIcon({ platform }: { platform: string }) {
   if (platform === 'YouTube') return <Clapperboard className="size-3.5" />;
@@ -155,12 +164,18 @@ function SubmitDialog() {
 export default function Home() {
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('Усё');
-  const results = useMemo(() => media.filter((item) => {
+  const [catalogMedia, setCatalogMedia] = useState(media);
+
+  useEffect(() => {
+    setCatalogMedia(shuffleMedia(media));
+  }, []);
+
+  const results = useMemo(() => catalogMedia.filter((item) => {
     const matchesFilter = filter === 'Усё' || item.platform === filter;
     const needle = query.trim().toLowerCase();
     const matchesQuery = !needle || `${item.title} ${item.creator} ${item.category}`.toLowerCase().includes(needle);
     return matchesFilter && matchesQuery;
-  }), [filter, query]);
+  }), [catalogMedia, filter, query]);
 
   return (
     <main className="site-shell min-h-screen overflow-x-hidden text-foreground">
