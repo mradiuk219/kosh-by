@@ -1,0 +1,9 @@
+export const submissionsSchema = `CREATE TABLE IF NOT EXISTS submissions (
+  id TEXT PRIMARY KEY,
+  url TEXT NOT NULL,
+  reason TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+  submitter_email TEXT,
+  created_at TEXT NOT NULL,
+  reviewed_at TEXT
+)`;

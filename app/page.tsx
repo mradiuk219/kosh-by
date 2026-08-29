@@ -162,18 +162,43 @@ function CarouselRow({ items }: { items: Media[] }) {
 
 function SubmitDialog() {
   const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState('');
+
+  const submitSuggestion = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setSending(true);
+    setError('');
+    const form = new FormData(event.currentTarget);
+
+    try {
+      const response = await fetch('/api/submissions', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ url: form.get('url'), reason: form.get('reason') }),
+      });
+      if (!response.ok) throw new Error('Не ўдалося захаваць прапанову');
+      setSent(true);
+    } catch {
+      setError('Не ўдалося адправіць. Калі ласка, паспрабуй яшчэ раз.');
+    } finally {
+      setSending(false);
+    }
+  };
+
   return (
-    <Dialog onOpenChange={(open) => !open && setSent(false)}>
+    <Dialog onOpenChange={(open) => { if (!open) { setSent(false); setError(''); } }}>
       <DialogTrigger render={<Button className="rounded-full bg-primary px-5 font-semibold text-primary-foreground hover:bg-primary/90" />}>Прапанаваць</DialogTrigger>
       <DialogContent className="border-white/10 bg-[#15171b] p-6 sm:max-w-md">
         {sent ? (
           <div className="py-8 text-center"><span className="mx-auto mb-5 grid size-14 place-items-center rounded-full bg-secondary/15 text-secondary"><Check className="size-7" /></span><DialogTitle className="text-xl font-bold">Дзякуй за знаходку!</DialogTitle><DialogDescription className="mt-3">Прапанова захавана для праверкі рэдакцыяй КОШа.</DialogDescription></div>
         ) : (
           <><DialogHeader><DialogTitle className="text-xl font-bold">Дадаць у КОШ</DialogTitle><DialogDescription>Дашлі спасылку на добры беларускамоўны канал, ролік або падкаст.</DialogDescription></DialogHeader>
-          <form className="mt-2 space-y-4" onSubmit={(event) => { event.preventDefault(); setSent(true); }}>
-            <label className="block text-sm font-medium">Спасылка<Input type="url" required placeholder="https://…" className="mt-2 h-11 border-white/10 bg-white/5" /></label>
-            <label className="block text-sm font-medium">Чаму варта дадаць?<Input required placeholder="Коратка пра кантэнт" className="mt-2 h-11 border-white/10 bg-white/5" /></label>
-            <Button type="submit" className="h-11 w-full rounded-full font-bold"><Send className="size-4" /> Адправіць прапанову</Button>
+          <form className="mt-2 space-y-4" onSubmit={submitSuggestion}>
+            <label className="block text-sm font-medium">Спасылка<Input name="url" type="url" required placeholder="https://…" className="mt-2 h-11 border-white/10 bg-white/5" /></label>
+            <label className="block text-sm font-medium">Чаму варта дадаць?<Input name="reason" required maxLength={500} placeholder="Коратка пра кантэнт" className="mt-2 h-11 border-white/10 bg-white/5" /></label>
+            {error && <p role="alert" className="text-sm text-red-300">{error}</p>}
+            <Button type="submit" disabled={sending} className="h-11 w-full rounded-full font-bold"><Send className="size-4" /> {sending ? 'Адпраўляем…' : 'Адправіць прапанову'}</Button>
           </form></>
         )}
       </DialogContent>
