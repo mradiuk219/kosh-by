@@ -68,6 +68,14 @@ const socialMedia: Media[] = [
 const media = [...youtubeMedia, ...socialMedia];
 const filters = ['Усё', 'YouTube', 'Instagram', 'TikTok', 'Twitch'];
 const platformCounts = Object.fromEntries(filters.slice(1).map((platform) => [platform, media.filter((item) => item.platform === platform).length]));
+const heroStats = [
+  { value: media.length, label: 'Колькасьць аўтараў' },
+  { value: '442 тыс.', label: 'Найбольш падпісантаў' },
+  { value: platformCounts.YouTube, label: 'Аўтараў з YouTube' },
+  { value: platformCounts.Twitch, label: 'Аўтараў з Twitch' },
+  { value: platformCounts.Instagram, label: 'Аўтараў з Instagram' },
+  { value: platformCounts.TikTok, label: 'Аўтараў з TikTok' },
+];
 
 function PlatformIcon({ platform }: { platform: string }) {
   if (platform === 'YouTube') return <Clapperboard className="size-3.5" />;
@@ -172,13 +180,14 @@ export default function Home() {
         <div className="mx-auto flex min-h-[620px] max-w-[1500px] items-end px-5 pb-16 lg:px-10"><div className="max-w-3xl">
           <h1 className="text-balance text-5xl font-black leading-[0.94] tracking-[-0.055em] text-white sm:text-7xl">Беларускае —<br />бліжэй, чым здаецца</h1>
           <p className="mt-6 max-w-xl text-base leading-relaxed text-white/70 sm:text-lg">Відэа, падкасты, аўтары і гісторыі па-беларуску — сабраныя ў адным месцы, каб цікавае не гублялася ў стужцы.</p>
-          <div className="mt-8 grid max-w-3xl grid-cols-2 gap-2.5 sm:grid-cols-3">
-            <div className="rounded-2xl border border-white/12 bg-[#111821]/62 p-4 backdrop-blur-md"><strong className="block text-3xl font-black text-white">{media.length}</strong><span className="mt-1 block text-xs leading-tight text-white/60">Колькасьць аўтараў</span></div>
-            <div className="rounded-2xl border border-white/12 bg-[#111821]/62 p-4 backdrop-blur-md"><strong className="block text-3xl font-black text-primary">442 тыс.</strong><span className="mt-1 block text-xs leading-tight text-white/60">Найбольш падпісантаў</span></div>
-            <div className="rounded-2xl border border-white/12 bg-[#111821]/62 p-4 backdrop-blur-md"><strong className="block text-3xl font-black text-white">{platformCounts.YouTube}</strong><span className="mt-1 block text-xs leading-tight text-white/60">Аўтараў з YouTube</span></div>
-            <div className="rounded-2xl border border-white/12 bg-[#111821]/62 p-4 backdrop-blur-md"><strong className="block text-3xl font-black text-white">{platformCounts.Twitch}</strong><span className="mt-1 block text-xs leading-tight text-white/60">Аўтараў з Twitch</span></div>
-            <div className="rounded-2xl border border-white/12 bg-[#111821]/62 p-4 backdrop-blur-md"><strong className="block text-3xl font-black text-white">{platformCounts.Instagram}</strong><span className="mt-1 block text-xs leading-tight text-white/60">Аўтараў з Instagram</span></div>
-            <div className="rounded-2xl border border-white/12 bg-[#111821]/62 p-4 backdrop-blur-md"><strong className="block text-3xl font-black text-white">{platformCounts.TikTok}</strong><span className="mt-1 block text-xs leading-tight text-white/60">Аўтараў з TikTok</span></div>
+          <div className="mt-7 grid max-w-3xl grid-cols-2 gap-x-2 gap-y-3 sm:grid-cols-3">
+            {heroStats.map((stat) => (
+              <div key={stat.label} className="relative flex min-h-40 flex-col items-center justify-center px-2 text-center">
+                <img src="/honor-seal-ornament.png" alt="" aria-hidden="true" className="pointer-events-none absolute left-1/2 top-1/2 size-40 -translate-x-1/2 -translate-y-1/2 object-contain opacity-70" />
+                <strong className="relative z-10 mt-1 block text-3xl font-black tracking-tight text-white drop-shadow-[0_2px_10px_rgba(0,0,0,.8)] sm:text-4xl">{stat.value}</strong>
+                <span className="relative z-10 mt-1 block max-w-28 text-[11px] font-semibold leading-tight text-white/75 drop-shadow-[0_2px_8px_rgba(0,0,0,.9)]">{stat.label}</span>
+              </div>
+            ))}
           </div>
         </div></div>
       </section>
