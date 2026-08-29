@@ -50,13 +50,24 @@
 
 body {
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
-  background: #08090b;
+  background: #151b24;
+}
+
+.site-shell {
+  background-color: #151b24;
+  background-image:
+    radial-gradient(circle at 1px 1px, rgb(111 164 237 / 16%) 1px, transparent 0),
+    radial-gradient(circle at 12% 32%, rgb(70 131 214 / 18%), transparent 28rem),
+    radial-gradient(circle at 88% 72%, rgb(233 101 42 / 12%), transparent 30rem),
+    linear-gradient(180deg, #18202b 0%, #151b24 48%, #1a2029 100%);
+  background-size: 28px 28px, 100% 100%, 100% 100%, 100% 100%;
+  background-attachment: fixed;
 }
 
 :root {
-  --background: oklch(0.12 0.008 265);
+  --background: oklch(0.21 0.025 255);
   --foreground: oklch(0.96 0.006 260);
-  --card: oklch(0.18 0.01 265);
+  --card: oklch(0.26 0.025 255);
   --card-foreground: oklch(0.96 0.006 260);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
@@ -89,11 +100,11 @@ body {
 }
 
 .dark {
-  --background: oklch(0.12 0.008 265);
+  --background: oklch(0.21 0.025 255);
   --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
+  --card: oklch(0.26 0.025 255);
   --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
+  --popover: oklch(0.235 0.022 255);
   --popover-foreground: oklch(0.985 0 0);
   --primary: oklch(0.68 0.2 39);
   --primary-foreground: oklch(0.99 0 0);

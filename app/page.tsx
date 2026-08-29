@@ -81,8 +81,8 @@ export default function Home() {
   }), [filter, query]);
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-background text-foreground">
-      <header className="fixed inset-x-0 top-0 z-40 border-b border-white/8 bg-[#08090b]/82 backdrop-blur-xl">
+    <main className="site-shell min-h-screen overflow-x-hidden text-foreground">
+      <header className="fixed inset-x-0 top-0 z-40 border-b border-white/10 bg-[#111821]/82 backdrop-blur-xl">
         <div className="mx-auto flex h-18 max-w-[1500px] items-center gap-7 px-5 lg:px-10">
           <Sheet><SheetTrigger render={<Button aria-label="Адкрыць меню" size="icon" variant="ghost" className="md:hidden" />}><Menu /></SheetTrigger><SheetContent side="left" className="border-white/10 bg-[#101115]"><SheetHeader><SheetTitle className="text-2xl font-black">КОШ<span className="text-primary">.</span></SheetTitle><SheetDescription>Беларускі кантэнт у адным кошы</SheetDescription></SheetHeader><nav className="grid gap-1 px-4 text-lg"><a className="rounded-xl bg-white/6 px-4 py-3" href="#">Галоўная</a><a className="rounded-xl px-4 py-3" href="#catalog">Катэгорыі</a><a className="rounded-xl px-4 py-3" href="#new">Новае</a><a className="rounded-xl px-4 py-3" href="#about">Пра КОШ</a></nav></SheetContent></Sheet>
           <a href="#" className="text-2xl font-black tracking-[-0.06em] text-white" aria-label="КОШ — галоўная">КОШ<span className="text-primary">.</span></a>
@@ -94,7 +94,7 @@ export default function Home() {
 
       <section className="relative isolate min-h-[690px] pt-18">
         <img className="absolute inset-0 -z-20 h-full w-full object-cover object-center" src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=2200&q=88" alt="Ранішняе святло над краявідам" />
-        <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,#08090b_4%,rgba(8,9,11,.93)_35%,rgba(8,9,11,.3)_72%,rgba(8,9,11,.75)_100%),linear-gradient(0deg,#08090b_0%,transparent_55%)]" />
+        <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,#111821_3%,rgba(17,24,33,.82)_36%,rgba(17,24,33,.18)_72%,rgba(17,24,33,.56)_100%),linear-gradient(0deg,#151b24_0%,transparent_58%)]" />
         <div className="mx-auto flex min-h-[620px] max-w-[1500px] items-end px-5 pb-20 lg:px-10"><div className="max-w-2xl">
           <div className="mb-5 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-secondary"><Sparkles className="size-4" /> Выбар рэдакцыі</div>
           <h1 className="text-balance text-5xl font-black leading-[0.94] tracking-[-0.055em] text-white sm:text-7xl">Беларускае —<br />бліжэй, чым здаецца</h1>
