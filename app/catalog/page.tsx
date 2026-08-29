@@ -61,7 +61,7 @@ export default function CatalogPage() {
         <div className="mb-9 max-w-3xl">
           <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-secondary">Увесь КОШ</p>
           <h1 className="text-4xl font-black tracking-tight text-white sm:text-5xl">Каталог беларускага кантэнту</h1>
-          <p className="mt-4 text-white/55">Шукай аўтараў па платформе і тэме, параўноўвай і адкрывай новыя галасы.</p>
+          <p className="mt-4 text-white/55">Шукай аўтараў па платформе і тэме</p>
         </div>
 
         <div className="grid gap-8 lg:grid-cols-[250px_minmax(0,1fr)]">
@@ -75,7 +75,7 @@ export default function CatalogPage() {
 
             <fieldset>
               <legend className="mb-3 text-xs font-bold uppercase tracking-wider text-white/45">Платформа</legend>
-              <div className="flex flex-wrap gap-2 lg:grid">{platforms.map((platform) => <Button key={platform} variant="outline" onClick={() => togglePlatform(platform)} className={`justify-start rounded-xl border-white/10 ${selectedPlatforms.includes(platform) ? 'bg-primary text-white hover:bg-primary/90' : 'bg-white/4 text-white/65 hover:bg-white/8'}`}>{platform}</Button>)}</div>
+              <div className="flex flex-wrap gap-2 lg:grid">{platforms.map((platform) => <Button key={platform} aria-pressed={selectedPlatforms.includes(platform)} variant="outline" onClick={() => togglePlatform(platform)} className={`justify-start rounded-xl transition ${selectedPlatforms.includes(platform) ? 'border-primary bg-primary font-bold text-white shadow-[0_0_0_3px_rgba(230,72,42,.24),0_8px_24px_rgba(230,72,42,.28)] hover:border-primary hover:bg-primary/90' : 'border-white/10 bg-white/4 text-white/65 hover:bg-white/8'}`}>{platform}</Button>)}</div>
             </fieldset>
 
             <div>
