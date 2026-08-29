@@ -1,7 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { ArrowRight, Camera, Check, ChevronRight, Clapperboard, Menu, Mic2, Play, Radio, Search, Send } from 'lucide-react';
+import { useMemo, useRef, useState } from 'react';
+import { ArrowRight, Camera, Check, ChevronLeft, ChevronRight, Clapperboard, Menu, Mic2, Play, Radio, Search, Send } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -80,7 +80,7 @@ function MediaCard({ item }: { item: Media }) {
   const badgeClass = item.platform === 'YouTube' ? 'border-[#ff4e45] bg-[#ff0000]' : item.platform === 'Instagram' ? 'border-fuchsia-400/70 bg-gradient-to-r from-fuchsia-600 via-pink-500 to-orange-400' : item.platform === 'TikTok' ? 'border-cyan-300/70 bg-black shadow-cyan-500/20' : 'border-violet-300/70 bg-[#9146ff]';
   const logoClass = item.platform === 'Instagram' ? 'bg-gradient-to-br from-violet-600 via-pink-500 to-orange-400' : item.platform === 'TikTok' ? 'bg-black' : item.platform === 'Twitch' ? 'bg-[#9146ff]' : 'bg-white';
   const card = (
-    <article className="group relative aspect-[4/5] w-[72vw] max-w-[285px] shrink-0 overflow-hidden rounded-2xl border border-white/8 bg-card transition hover:-translate-y-1 hover:border-white/20">
+    <article className="group relative aspect-[4/5] w-[72vw] max-w-[285px] shrink-0 snap-start overflow-hidden rounded-2xl border border-white/8 bg-card transition hover:-translate-y-1 hover:border-white/20">
       <img src={item.background} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105" />
       <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/72 to-[#08090b]/98" />
       <div className="absolute inset-x-0 top-0 flex justify-center px-5 pt-7">
@@ -96,6 +96,30 @@ function MediaCard({ item }: { item: Media }) {
   );
 
   return item.url ? <a href={item.url} target="_blank" rel="noreferrer" aria-label={`Адкрыць канал ${item.title} на YouTube`}>{card}</a> : card;
+}
+
+function CarouselRow({ items }: { items: Media[] }) {
+  const rowRef = useRef<HTMLDivElement>(null);
+
+  const scroll = (direction: -1 | 1) => {
+    const row = rowRef.current;
+    if (!row) return;
+    row.scrollBy({ left: direction * Math.max(280, row.clientWidth * 0.82), behavior: 'smooth' });
+  };
+
+  return (
+    <div className="relative">
+      <div ref={rowRef} className="flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth pb-5 pr-10 touch-pan-x [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {items.map((item) => <MediaCard key={`${item.platform}-${item.title}`} item={item} />)}
+      </div>
+      <Button type="button" size="icon" variant="ghost" aria-label="Гартаць налева" onClick={() => scroll(-1)} className="absolute left-2 top-1/2 z-20 hidden size-11 -translate-y-1/2 rounded-full border border-white/15 bg-black/75 text-white shadow-xl backdrop-blur hover:bg-black/95 sm:grid">
+        <ChevronLeft className="size-6" />
+      </Button>
+      <Button type="button" size="icon" variant="ghost" aria-label="Гартаць направа" onClick={() => scroll(1)} className="absolute right-2 top-1/2 z-20 hidden size-11 -translate-y-1/2 rounded-full border border-white/15 bg-black/75 text-white shadow-xl backdrop-blur hover:bg-black/95 sm:grid">
+        <ChevronRight className="size-6" />
+      </Button>
+    </div>
+  );
 }
 
 function SubmitDialog() {
@@ -154,10 +178,10 @@ export default function Home() {
       <section id="catalog" className="mx-auto max-w-[1500px] px-5 pb-12 pt-6 lg:px-10">
         <div className="mb-6 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between"><div><p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-secondary">Знайдзі сваё</p><h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Каталог КОШа</h2></div><div className="relative block sm:hidden"><Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-white/40" /><Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Шукаць кантэнт" className="h-11 border-white/10 bg-white/6 pl-9" /></div></div>
         <div className="mb-7 flex gap-2 overflow-x-auto pb-2 [scrollbar-width:none]">{filters.map((name) => <Button key={name} onClick={() => setFilter(name)} variant={filter === name ? 'secondary' : 'outline'} className={`h-9 shrink-0 rounded-full px-4 ${filter !== name ? 'border-white/10 bg-white/4 text-white/65' : ''}`}>{name}</Button>)}</div>
-        {results.length ? <div className="flex gap-4 overflow-x-auto pb-5 [scrollbar-width:none]">{results.map((item) => <MediaCard key={item.title} item={item} />)}</div> : <div className="rounded-3xl border border-dashed border-white/12 bg-white/3 px-6 py-14 text-center"><Search className="mx-auto mb-4 size-7 text-white/30" /><h3 className="font-bold">Нічога не знайшлося</h3><p className="mt-2 text-sm text-white/50">Паспрабуй іншыя словы або абяры «Усё».</p><Button variant="link" className="mt-2 text-secondary" onClick={() => { setQuery(''); setFilter('Усё'); }}>Скінуць пошук</Button></div>}
+        {results.length ? <CarouselRow items={results} /> : <div className="rounded-3xl border border-dashed border-white/12 bg-white/3 px-6 py-14 text-center"><Search className="mx-auto mb-4 size-7 text-white/30" /><h3 className="font-bold">Нічога не знайшлося</h3><p className="mt-2 text-sm text-white/50">Паспрабуй іншыя словы або абяры «Усё».</p><Button variant="link" className="mt-2 text-secondary" onClick={() => { setQuery(''); setFilter('Усё'); }}>Скінуць пошук</Button></div>}
       </section>
 
-      <section id="new" className="mx-auto max-w-[1500px] px-5 py-12 lg:px-10"><div className="mb-6 flex items-end justify-between"><div><p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-primary">Свежае ў кошы</p><h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Новыя знаходкі</h2></div><button className="hidden items-center gap-1 text-sm font-semibold text-white/55 sm:flex">Глядзець усе <ChevronRight className="size-4" /></button></div><div className="flex gap-4 overflow-x-auto pb-5 [scrollbar-width:none]">{media.slice(4).map((item) => <MediaCard key={item.title} item={item} />)}</div></section>
+      <section id="new" className="mx-auto max-w-[1500px] px-5 py-12 lg:px-10"><div className="mb-6 flex items-end justify-between"><div><p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-primary">Свежае ў кошы</p><h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Новыя знаходкі</h2></div><button className="hidden items-center gap-1 text-sm font-semibold text-white/55 sm:flex">Глядзець усе <ChevronRight className="size-4" /></button></div><CarouselRow items={media.slice(4)} /></section>
 
       <section id="about" className="mx-5 my-14 overflow-hidden rounded-[2rem] border border-white/8 bg-[radial-gradient(circle_at_15%_30%,rgba(70,131,214,.22),transparent_35%),radial-gradient(circle_at_90%_80%,rgba(233,101,42,.2),transparent_35%),#14161a] lg:mx-10"><div className="mx-auto grid max-w-5xl gap-8 px-6 py-16 text-center sm:px-12"><p className="mx-auto text-xs font-bold uppercase tracking-[0.2em] text-secondary">Супольны праект</p><h2 className="text-balance text-3xl font-black tracking-tight sm:text-5xl">Добры кантэнт ствараюць людзі</h2><p className="mx-auto max-w-2xl text-white/62">КОШ расце з вашых парад. Калі ведаеш аўтара, канал або падкаст па-беларуску — падзяліся спасылкай.</p><div><SubmitDialog /></div></div></section>
 
