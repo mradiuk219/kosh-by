@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 
-type Media = { title: string; creator: string; platform: string; category: string; image?: string; logoText?: string; background: string; url?: string; featured?: boolean; addedAt?: string };
+export type Media = { title: string; creator: string; platform: string; category: string; image?: string; logoText?: string; background: string; url?: string; featured?: boolean; addedAt?: string };
 
 const bg = {
   culture: 'https://images.unsplash.com/photo-1564399579883-451a5d44ec08?auto=format&fit=crop&w=900&q=78',
@@ -65,7 +65,7 @@ const socialMedia: Media[] = [
   })),
 ];
 
-const media = [...youtubeMedia, ...socialMedia].map((item) => item.platform === 'Instagram' ? { ...item, addedAt: '2026-08-29' } : item);
+export const media = [...youtubeMedia, ...socialMedia].map((item) => item.platform === 'Instagram' ? { ...item, addedAt: '2026-08-29' } : item);
 const filters = ['Усё', 'YouTube', 'Instagram', 'TikTok', 'Twitch'];
 const platformCounts = Object.fromEntries(filters.slice(1).map((platform) => [platform, media.filter((item) => item.platform === platform).length]));
 const heroStats = [
@@ -111,11 +111,11 @@ function PlatformIcon({ platform }: { platform: string }) {
   return <Play className="size-3.5" />;
 }
 
-function MediaCard({ item }: { item: Media }) {
+export function MediaCard({ item, fluid = false }: { item: Media; fluid?: boolean }) {
   const badgeClass = item.platform === 'YouTube' ? 'border-[#ff4e45] bg-[#ff0000]' : item.platform === 'Instagram' ? 'border-fuchsia-400/70 bg-gradient-to-r from-fuchsia-600 via-pink-500 to-orange-400' : item.platform === 'TikTok' ? 'border-cyan-300/70 bg-black shadow-cyan-500/20' : 'border-violet-300/70 bg-[#9146ff]';
   const logoClass = item.platform === 'Instagram' ? 'bg-gradient-to-br from-violet-600 via-pink-500 to-orange-400' : item.platform === 'TikTok' ? 'bg-black' : item.platform === 'Twitch' ? 'bg-[#9146ff]' : 'bg-white';
   const card = (
-    <article className="group relative aspect-[4/5] w-[72vw] max-w-[285px] shrink-0 snap-start overflow-hidden rounded-2xl border border-white/8 bg-card transition hover:-translate-y-1 hover:border-white/20">
+    <article className={`group relative aspect-[4/5] shrink-0 snap-start overflow-hidden rounded-2xl border border-white/8 bg-card transition hover:-translate-y-1 hover:border-white/20 ${fluid ? 'w-full max-w-none' : 'w-[72vw] max-w-[285px]'}`}>
       <img src={item.background} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105" />
       <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/72 to-[#08090b]/98" />
       <div className="absolute inset-x-0 top-0 flex justify-center px-5 pt-7">
@@ -230,7 +230,7 @@ export default function Home() {
       <section id="catalog" className="mx-auto max-w-[1500px] px-5 pb-12 pt-6 lg:px-10">
         <div className="mb-6 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between"><div><p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-secondary">Знайдзі сваё</p><h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Каталог КОШа</h2></div><div className="relative block sm:hidden"><Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-white/40" /><Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Шукаць кантэнт" className="h-11 border-white/10 bg-white/6 pl-9" /></div></div>
         <div className="mb-7 flex gap-2 overflow-x-auto pb-2 [scrollbar-width:none]">{filters.map((name) => <Button key={name} onClick={() => setFilter(name)} variant={filter === name ? 'secondary' : 'outline'} className={`h-9 shrink-0 rounded-full px-4 ${filter !== name ? 'border-white/10 bg-white/4 text-white/65' : ''}`}>{name}</Button>)}</div>
-        {results.length ? <><CarouselRow items={results} /><div className="mt-3 flex justify-center"><Button size="lg" className="h-11 rounded-full bg-primary px-7 font-bold" onClick={() => { setQuery(''); setFilter('Усё'); document.querySelector('#catalog')?.scrollIntoView({ behavior: 'smooth' }); }}>Адкрыць каталог <ArrowRight className="size-4" /></Button></div></> : <div className="rounded-3xl border border-dashed border-white/12 bg-white/3 px-6 py-14 text-center"><Search className="mx-auto mb-4 size-7 text-white/30" /><h3 className="font-bold">Нічога не знайшлося</h3><p className="mt-2 text-sm text-white/50">Паспрабуй іншыя словы або абяры «Усё».</p><Button variant="link" className="mt-2 text-secondary" onClick={() => { setQuery(''); setFilter('Усё'); }}>Скінуць пошук</Button></div>}
+        {results.length ? <><CarouselRow items={results} /><div className="mt-3 flex justify-center"><Button size="lg" className="h-11 rounded-full bg-primary px-7 font-bold" onClick={() => { window.location.href = '/catalog'; }}>Адкрыць каталог <ArrowRight className="size-4" /></Button></div></> : <div className="rounded-3xl border border-dashed border-white/12 bg-white/3 px-6 py-14 text-center"><Search className="mx-auto mb-4 size-7 text-white/30" /><h3 className="font-bold">Нічога не знайшлося</h3><p className="mt-2 text-sm text-white/50">Паспрабуй іншыя словы або абяры «Усё».</p><Button variant="link" className="mt-2 text-secondary" onClick={() => { setQuery(''); setFilter('Усё'); }}>Скінуць пошук</Button></div>}
       </section>
 
       <section id="new" className="mx-auto max-w-[1500px] px-5 py-12 lg:px-10"><div className="mb-6 flex items-end justify-between"><div><p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-primary">Свежае ў кошы</p><h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Новыя знаходкі</h2></div><button className="hidden items-center gap-1 text-sm font-semibold text-white/55 sm:flex">Глядзець усе <ChevronRight className="size-4" /></button></div><CarouselRow items={freshMedia} /></section>
