@@ -183,7 +183,7 @@ export default function Home() {
           <div className="mt-7 grid max-w-3xl grid-cols-2 gap-x-2 gap-y-3 sm:grid-cols-3">
             {heroStats.map((stat) => (
               <div key={stat.label} className="relative flex min-h-40 flex-col items-center justify-center px-2 text-center">
-                <img src="/honor-seal-ornament.png" alt="" aria-hidden="true" className="pointer-events-none absolute left-1/2 top-1/2 size-40 -translate-x-1/2 -translate-y-1/2 object-contain opacity-70" />
+                <img src="/honor-seal-ornament.png" alt="" aria-hidden="true" className="pointer-events-none absolute left-1/2 top-1/2 size-40 -translate-x-1/2 -translate-y-1/2 object-contain opacity-50" />
                 <strong className="relative z-10 mt-1 block text-3xl font-black tracking-tight text-white drop-shadow-[0_2px_10px_rgba(0,0,0,.8)] sm:text-4xl">{stat.value}</strong>
                 <span className="relative z-10 mt-1 block max-w-28 text-[11px] font-semibold leading-tight text-white/75 drop-shadow-[0_2px_8px_rgba(0,0,0,.9)]">{stat.label}</span>
               </div>
