@@ -174,7 +174,7 @@ export default function Home() {
         </div>
       </header>
 
-      <section className="relative isolate min-h-[690px] pt-18">
+      <section className="relative isolate min-h-[690px] pt-24">
         <img className="absolute inset-0 -z-20 h-full w-full object-cover object-center" src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=2200&q=88" alt="Ранішняе святло над краявідам" />
         <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,#111821_3%,rgba(17,24,33,.82)_36%,rgba(17,24,33,.18)_72%,rgba(17,24,33,.56)_100%),linear-gradient(0deg,#151b24_0%,transparent_58%)]" />
         <div className="mx-auto flex min-h-[620px] max-w-[1500px] items-end px-5 pb-16 lg:px-10"><div className="max-w-3xl">
