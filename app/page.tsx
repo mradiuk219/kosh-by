@@ -13,19 +13,19 @@ type Media = { title: string; creator: string; platform: string; category: strin
 const media: Media[] = [
   { title: 'Будзьма беларусамі!', creator: 'Культура, гісторыя і беларуская ідэнтычнасць', platform: 'YouTube', category: 'Культура', image: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=900&q=82', url: 'https://www.youtube.com/@TheBudzma', featured: true },
   { title: 'Годна', creator: 'Беларуская культура, музыка і гісторыя', platform: 'YouTube', category: 'Культура', image: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=900&q=82', url: 'https://www.youtube.com/@hodnaby', featured: true },
-  { title: 'Беларускі падкаст', creator: 'Размовы пра важнае', platform: 'Падкаст', category: 'Размовы', image: 'https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&w=900&q=82', featured: true },
+  { title: 'Тутэйшы Шляхціч', creator: 'Беларуская гісторыя, мова і культура', platform: 'YouTube', category: 'Гісторыя', image: 'https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&w=900&q=82', url: 'https://www.youtube.com/@TutejszySzlachcicz', featured: true },
   { title: 'ХАДАНОВІЧ', creator: 'Літаратура, паэзія і культурныя размовы', platform: 'YouTube', category: 'Кнігі', image: 'https://images.unsplash.com/photo-1503095396549-807759245b35?auto=format&fit=crop&w=900&q=82', url: 'https://www.youtube.com/@chadanovic', featured: true },
   { title: 'PALATNO Media', creator: 'Гісторыі беларускіх гарадоў і супольнасцяў', platform: 'YouTube', category: 'Грамадства', image: 'https://images.unsplash.com/photo-1461360370896-922624d12aa1?auto=format&fit=crop&w=900&q=82', url: 'https://www.youtube.com/@palatno' },
-  { title: 'Каля літаратуры', creator: 'Кнігі і галасы аўтараў', platform: 'Падкаст', category: 'Кнігі', image: 'https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=900&q=82' },
-  { title: 'Навука па-беларуску', creator: 'Складанае простымі словамі', platform: 'YouTube', category: 'Навука', image: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=900&q=82' },
-  { title: 'Спяваем разам', creator: 'Новая беларуская музыка', platform: 'Instagram', category: 'Музыка', image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=900&q=82' },
-  { title: 'Дзіцячы космас', creator: 'Веды для маленькіх', platform: 'YouTube', category: 'Дзецям', image: 'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=900&q=82' },
-  { title: 'Смак Беларусі', creator: 'Рэцэпты і сямейныя гісторыі', platform: 'TikTok', category: 'Ежа', image: 'https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=900&q=82' },
-  { title: 'Падарожжы побач', creator: 'Невядомыя мясціны', platform: 'Instagram', category: 'Падарожжы', image: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=82' },
-  { title: 'Шчырыя размовы', creator: 'Людзі і іх справы', platform: 'Падкаст', category: 'Грамадства', image: 'https://images.unsplash.com/photo-1581368135153-a506cf13b1e1?auto=format&fit=crop&w=900&q=82' },
+  { title: 'Рудзі', creator: 'Гульні і гульнявая індустрыя па-беларуску', platform: 'YouTube', category: 'Гульні', image: 'https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=900&q=82', url: 'https://www.youtube.com/@Rudzi' },
+  { title: 'Berasnevy', creator: 'Дом, майстэрства і жыццё ў беларускай вёсцы', platform: 'YouTube', category: 'Дом', image: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=900&q=82', url: 'https://www.youtube.com/@Berasnevy' },
+  { title: 'Konan Ŭ', creator: 'Казкі, мова і развагі пра беларускасць', platform: 'YouTube', category: 'Культура', image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=900&q=82', url: 'https://www.youtube.com/@Konan_V' },
+  { title: 'Віталь Чырвінскі', creator: 'Размовы пра ваенную гісторыю Беларусі', platform: 'YouTube', category: 'Гісторыя', image: 'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=900&q=82', url: 'https://www.youtube.com/@vital_chyrvinski' },
+  { title: 'Белсат History', creator: 'Дакументальныя фільмы і гісторыя Беларусі', platform: 'YouTube', category: 'Гісторыя', image: 'https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=900&q=82', url: 'https://www.youtube.com/@belsat_history' },
+  { title: 'Гісторыя на Свабодзе', creator: 'Размовы пра мінулае Беларусі і рэгіёна', platform: 'YouTube', category: 'Гісторыя', image: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=82', url: 'https://www.youtube.com/@svaboda-historyja' },
+  { title: 'Слухай сюды', creator: 'Эпізоды беларускай гісторыі і культуры', platform: 'YouTube', category: 'Гісторыя', image: 'https://images.unsplash.com/photo-1581368135153-a506cf13b1e1?auto=format&fit=crop&w=900&q=82', url: 'https://www.youtube.com/@user-Sluhaj' },
 ];
 
-const filters = ['Усё', 'YouTube', 'Instagram', 'TikTok', 'Падкаст'];
+const filters = ['Усё', 'YouTube'];
 
 function PlatformIcon({ platform }: { platform: string }) {
   if (platform === 'YouTube') return <Clapperboard className="size-3.5" />;
