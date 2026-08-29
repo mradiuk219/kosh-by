@@ -8,14 +8,14 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 
-type Media = { title: string; creator: string; platform: string; category: string; image: string; featured?: boolean };
+type Media = { title: string; creator: string; platform: string; category: string; image: string; url?: string; featured?: boolean };
 
 const media: Media[] = [
-  { title: 'Мова нанова', creator: 'Курсы беларускай мовы', platform: 'YouTube', category: 'Адукацыя', image: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=900&q=82', featured: true },
-  { title: 'Годна', creator: 'Беларуская культура штодня', platform: 'YouTube', category: 'Культура', image: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=900&q=82', featured: true },
+  { title: 'Будзьма беларусамі!', creator: 'Культура, гісторыя і беларуская ідэнтычнасць', platform: 'YouTube', category: 'Культура', image: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=900&q=82', url: 'https://www.youtube.com/@TheBudzma', featured: true },
+  { title: 'Годна', creator: 'Беларуская культура, музыка і гісторыя', platform: 'YouTube', category: 'Культура', image: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=900&q=82', url: 'https://www.youtube.com/@hodnaby', featured: true },
   { title: 'Беларускі падкаст', creator: 'Размовы пра важнае', platform: 'Падкаст', category: 'Размовы', image: 'https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&w=900&q=82', featured: true },
-  { title: 'Купалаўцы', creator: 'Незалежная тэатральная трупа', platform: 'YouTube', category: 'Тэатр', image: 'https://images.unsplash.com/photo-1503095396549-807759245b35?auto=format&fit=crop&w=900&q=82', featured: true },
-  { title: 'Гісторыя на Свабодзе', creator: 'Падарожжа ў мінулае', platform: 'YouTube', category: 'Гісторыя', image: 'https://images.unsplash.com/photo-1461360370896-922624d12aa1?auto=format&fit=crop&w=900&q=82' },
+  { title: 'ХАДАНОВІЧ', creator: 'Літаратура, паэзія і культурныя размовы', platform: 'YouTube', category: 'Кнігі', image: 'https://images.unsplash.com/photo-1503095396549-807759245b35?auto=format&fit=crop&w=900&q=82', url: 'https://www.youtube.com/@chadanovic', featured: true },
+  { title: 'PALATNO Media', creator: 'Гісторыі беларускіх гарадоў і супольнасцяў', platform: 'YouTube', category: 'Грамадства', image: 'https://images.unsplash.com/photo-1461360370896-922624d12aa1?auto=format&fit=crop&w=900&q=82', url: 'https://www.youtube.com/@palatno' },
   { title: 'Каля літаратуры', creator: 'Кнігі і галасы аўтараў', platform: 'Падкаст', category: 'Кнігі', image: 'https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=900&q=82' },
   { title: 'Навука па-беларуску', creator: 'Складанае простымі словамі', platform: 'YouTube', category: 'Навука', image: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=900&q=82' },
   { title: 'Спяваем разам', creator: 'Новая беларуская музыка', platform: 'Instagram', category: 'Музыка', image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=900&q=82' },
@@ -35,8 +35,8 @@ function PlatformIcon({ platform }: { platform: string }) {
 }
 
 function MediaCard({ item }: { item: Media }) {
-  return (
-    <article className="group relative aspect-[4/5] w-[72vw] max-w-[285px] shrink-0 overflow-hidden rounded-2xl border border-white/8 bg-card">
+  const card = (
+    <article className="group relative aspect-[4/5] w-[72vw] max-w-[285px] shrink-0 overflow-hidden rounded-2xl border border-white/8 bg-card transition hover:-translate-y-1 hover:border-white/20">
       <img src={item.image} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
       <div className="absolute inset-0 bg-gradient-to-t from-black via-black/10 to-transparent" />
       <div className="absolute inset-x-0 bottom-0 p-5">
@@ -47,6 +47,8 @@ function MediaCard({ item }: { item: Media }) {
       </div>
     </article>
   );
+
+  return item.url ? <a href={item.url} target="_blank" rel="noreferrer" aria-label={`Адкрыць канал ${item.title} на YouTube`}>{card}</a> : card;
 }
 
 function SubmitDialog() {
@@ -116,3 +118,4 @@ export default function Home() {
     </main>
   );
 }
+
