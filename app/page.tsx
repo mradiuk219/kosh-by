@@ -70,7 +70,7 @@ const filters = ['Усё', 'YouTube', 'Instagram', 'TikTok', 'Twitch'];
 const platformCounts = Object.fromEntries(filters.slice(1).map((platform) => [platform, media.filter((item) => item.platform === platform).length]));
 const heroStats = [
   { value: media.length, label: 'Колькасьць аўтараў' },
-  { value: '442 тыс.', label: 'Найбольш падпісантаў' },
+  { value: '442 тыс.', label: 'Найбольш падпісантаў', channel: 'БЕЛСАТ NEWS', href: 'https://www.youtube.com/@belsat_news' },
   { value: platformCounts.YouTube, label: 'Аўтараў з YouTube' },
   { value: platformCounts.Twitch, label: 'Аўтараў з Twitch' },
   { value: platformCounts.Instagram, label: 'Аўтараў з Instagram' },
@@ -306,6 +306,7 @@ export default function Home() {
                 <img src="/honor-seal-ornament.png" alt="" aria-hidden="true" className="pointer-events-none absolute left-1/2 top-1/2 size-40 -translate-x-1/2 -translate-y-1/2 object-contain opacity-30" />
                 <strong className="relative z-10 mt-1 block text-3xl font-black tracking-tight text-white drop-shadow-[0_2px_10px_rgba(0,0,0,.8)] sm:text-4xl">{stat.value}</strong>
                 <span className="relative z-10 mt-1 block max-w-32 text-[13px] font-semibold leading-tight text-white/75 drop-shadow-[0_2px_8px_rgba(0,0,0,.9)]">{stat.label}</span>
+                {'href' in stat && stat.href && <a href={stat.href} target="_blank" rel="noreferrer" className="relative z-10 mt-1 text-xs font-bold text-secondary underline decoration-secondary/45 underline-offset-2 transition hover:text-[#8fb8ff]">{stat.channel}</a>}
               </div>
             ))}
           </div>
