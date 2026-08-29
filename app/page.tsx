@@ -110,23 +110,24 @@ function getFreshMedia(items: Media[]) {
 
 const freshMedia = getFreshMedia(media);
 
-type ApprovedSubmission = { id: string; url: string; reason: string; created_at: string; reviewed_at: string | null };
+type ApprovedSubmission = { id: string; url: string; reason: string; created_at: string; reviewed_at: string | null; title?: string | null; description?: string | null; category?: string | null; platform?: string | null; avatar_url?: string | null };
 
 export function approvedSubmissionToMedia(submission: ApprovedSubmission): Media {
   const parsed = new URL(submission.url);
   const handle = decodeURIComponent(parsed.pathname.split('/').filter(Boolean).at(-1) ?? 'Новы аўтар').replace(/^@/, '').replaceAll('_', ' ');
-  const title = handle.replace(/\b\p{L}/gu, (letter) => letter.toUpperCase());
+  const title = submission.title || handle.replace(/\b\p{L}/gu, (letter) => letter.toUpperCase());
   const host = parsed.hostname.toLowerCase();
-  const platform = host.includes('youtube') || host.includes('youtu.be') ? 'YouTube' : host.includes('instagram') ? 'Instagram' : host.includes('tiktok') ? 'TikTok' : host.includes('twitch') ? 'Twitch' : 'Сайт';
+  const platform = submission.platform || (host.includes('youtube') || host.includes('youtu.be') ? 'YouTube' : host.includes('instagram') ? 'Instagram' : host.includes('tiktok') ? 'TikTok' : host.includes('twitch') ? 'Twitch' : 'Сайт');
   const lowerReason = submission.reason.toLowerCase();
-  const category = lowerReason.includes('гуль') || lowerReason.includes('game') ? 'Гульні' : lowerReason.includes('музык') || lowerReason.includes('пес') ? 'Музыка' : 'Супольнасць';
+  const category = submission.category || (lowerReason.includes('гуль') || lowerReason.includes('game') ? 'Гульні' : lowerReason.includes('музык') || lowerReason.includes('пес') ? 'Музыка' : 'Супольнасць');
   const backgrounds: Record<string, string> = { YouTube: bg.culture, Instagram: bg.travel, TikTok: bg.games, Twitch: bg.talk, Сайт: bg.culture };
 
   return {
     title,
-    creator: submission.reason,
+    creator: submission.description || submission.reason,
     platform,
     category,
+    image: submission.avatar_url || undefined,
     logoText: handle.slice(0, 2).toUpperCase(),
     background: backgrounds[platform],
     url: submission.url,
