@@ -8,21 +8,21 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 
-type Media = { title: string; creator: string; platform: string; category: string; image: string; url?: string; featured?: boolean };
+type Media = { title: string; creator: string; platform: string; category: string; image: string; background: string; url?: string; featured?: boolean };
 
 const media: Media[] = [
-  { title: 'Будзьма беларусамі!', creator: 'Культура, гісторыя і беларуская ідэнтычнасць', platform: 'YouTube', category: 'Культура', image: '/channel-logos/budzma.png', url: 'https://www.youtube.com/@TheBudzma', featured: true },
-  { title: 'Годна', creator: 'Беларуская культура, музыка і гісторыя', platform: 'YouTube', category: 'Культура', image: '/channel-logos/hodna.png', url: 'https://www.youtube.com/@hodnaby', featured: true },
-  { title: 'Тутэйшы Шляхціч', creator: 'Беларуская гісторыя, мова і культура', platform: 'YouTube', category: 'Гісторыя', image: '/channel-logos/tutejszy.png', url: 'https://www.youtube.com/@TutejszySzlachcicz', featured: true },
-  { title: 'ХАДАНОВІЧ', creator: 'Літаратура, паэзія і культурныя размовы', platform: 'YouTube', category: 'Кнігі', image: '/channel-logos/chadanovic.png', url: 'https://www.youtube.com/@chadanovic', featured: true },
-  { title: 'PALATNO Media', creator: 'Гісторыі беларускіх гарадоў і супольнасцяў', platform: 'YouTube', category: 'Грамадства', image: '/channel-logos/palatno.png', url: 'https://www.youtube.com/@palatno' },
-  { title: 'Рудзі', creator: 'Гульні і гульнявая індустрыя па-беларуску', platform: 'YouTube', category: 'Гульні', image: '/channel-logos/rudzi.png', url: 'https://www.youtube.com/@Rudzi' },
-  { title: 'Vozhyk', creator: 'Беларускамоўныя агучкі, гумар і пераклады', platform: 'YouTube', category: 'Гумар', image: '/channel-logos/vozhyk.png', url: 'https://www.youtube.com/@vozh_voice' },
-  { title: 'Konan Ŭ', creator: 'Казкі, мова і развагі пра беларускасць', platform: 'YouTube', category: 'Культура', image: '/channel-logos/konan.png', url: 'https://www.youtube.com/@Konan_V' },
-  { title: 'Віталь Чырвінскі', creator: 'Размовы пра ваенную гісторыю Беларусі', platform: 'YouTube', category: 'Гісторыя', image: '/channel-logos/chyrvinski.png', url: 'https://www.youtube.com/@vital_chyrvinski' },
-  { title: 'Белсат History', creator: 'Дакументальныя фільмы і гісторыя Беларусі', platform: 'YouTube', category: 'Гісторыя', image: '/channel-logos/belsat-history.png', url: 'https://www.youtube.com/@belsat_history' },
-  { title: 'Гісторыя на Свабодзе', creator: 'Размовы пра мінулае Беларусі і рэгіёна', platform: 'YouTube', category: 'Гісторыя', image: '/channel-logos/svaboda-history.png', url: 'https://www.youtube.com/@svaboda-historyja' },
-  { title: 'Слухай сюды', creator: 'Эпізоды беларускай гісторыі і культуры', platform: 'YouTube', category: 'Гісторыя', image: '/channel-logos/sluhaj.png', url: 'https://www.youtube.com/@user-Sluhaj' },
+  { title: 'Будзьма беларусамі!', creator: 'Культура, гісторыя і беларуская ідэнтычнасць', platform: 'YouTube', category: 'Культура', image: '/channel-logos/budzma.png', background: 'https://images.unsplash.com/photo-1564399579883-451a5d44ec08?auto=format&fit=crop&w=900&q=78', url: 'https://www.youtube.com/@TheBudzma', featured: true },
+  { title: 'Годна', creator: 'Беларуская культура, музыка і гісторыя', platform: 'YouTube', category: 'Культура', image: '/channel-logos/hodna.png', background: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=900&q=78', url: 'https://www.youtube.com/@hodnaby', featured: true },
+  { title: 'Тутэйшы Шляхціч', creator: 'Беларуская гісторыя, мова і культура', platform: 'YouTube', category: 'Гісторыя', image: '/channel-logos/tutejszy.png', background: 'https://images.unsplash.com/photo-1461360370896-922624d12aa1?auto=format&fit=crop&w=900&q=78', url: 'https://www.youtube.com/@TutejszySzlachcicz', featured: true },
+  { title: 'ХАДАНОВІЧ', creator: 'Літаратура, паэзія і культурныя размовы', platform: 'YouTube', category: 'Кнігі', image: '/channel-logos/chadanovic.png', background: 'https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=900&q=78', url: 'https://www.youtube.com/@chadanovic', featured: true },
+  { title: 'PALATNO Media', creator: 'Гісторыі беларускіх гарадоў і супольнасцяў', platform: 'YouTube', category: 'Грамадства', image: '/channel-logos/palatno.png', background: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=900&q=78', url: 'https://www.youtube.com/@palatno' },
+  { title: 'Рудзі', creator: 'Гульні і гульнявая індустрыя па-беларуску', platform: 'YouTube', category: 'Гульні', image: '/channel-logos/rudzi.png', background: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=900&q=78', url: 'https://www.youtube.com/@Rudzi' },
+  { title: 'Vozhyk', creator: 'Беларускамоўныя агучкі, гумар і пераклады', platform: 'YouTube', category: 'Гумар', image: '/channel-logos/vozhyk.png', background: 'https://images.unsplash.com/photo-1586899028174-e7098604235b?auto=format&fit=crop&w=900&q=78', url: 'https://www.youtube.com/@vozh_voice' },
+  { title: 'Konan Ŭ', creator: 'Казкі, мова і развагі пра беларускасць', platform: 'YouTube', category: 'Культура', image: '/channel-logos/konan.png', background: 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?auto=format&fit=crop&w=900&q=78', url: 'https://www.youtube.com/@Konan_V' },
+  { title: 'Віталь Чырвінскі', creator: 'Размовы пра ваенную гісторыю Беларусі', platform: 'YouTube', category: 'Гісторыя', image: '/channel-logos/chyrvinski.png', background: 'https://images.unsplash.com/photo-1564982759782-3a931653a86c?auto=format&fit=crop&w=900&q=78', url: 'https://www.youtube.com/@vital_chyrvinski' },
+  { title: 'Белсат History', creator: 'Дакументальныя фільмы і гісторыя Беларусі', platform: 'YouTube', category: 'Гісторыя', image: '/channel-logos/belsat-history.png', background: 'https://images.unsplash.com/photo-1564399579883-451a5d44ec08?auto=format&fit=crop&w=900&q=78', url: 'https://www.youtube.com/@belsat_history' },
+  { title: 'Гісторыя на Свабодзе', creator: 'Размовы пра мінулае Беларусі і рэгіёна', platform: 'YouTube', category: 'Гісторыя', image: '/channel-logos/svaboda-history.png', background: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&w=900&q=78', url: 'https://www.youtube.com/@svaboda-historyja' },
+  { title: 'Слухай сюды', creator: 'Эпізоды беларускай гісторыі і культуры', platform: 'YouTube', category: 'Гісторыя', image: '/channel-logos/sluhaj.png', background: 'https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&w=900&q=78', url: 'https://www.youtube.com/@user-Sluhaj' },
 ];
 
 const filters = ['Усё', 'YouTube'];
@@ -37,8 +37,8 @@ function PlatformIcon({ platform }: { platform: string }) {
 function MediaCard({ item }: { item: Media }) {
   const card = (
     <article className="group relative aspect-[4/5] w-[72vw] max-w-[285px] shrink-0 overflow-hidden rounded-2xl border border-white/8 bg-card transition hover:-translate-y-1 hover:border-white/20">
-      <img src={item.image} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full scale-125 object-cover opacity-20 blur-2xl transition duration-500 group-hover:scale-[1.35]" />
-      <div className="absolute inset-0 bg-gradient-to-b from-[#20242b]/55 via-[#101318]/82 to-[#08090b]" />
+      <img src={item.background} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/72 to-[#08090b]/98" />
       <div className="absolute inset-x-0 top-0 flex justify-center px-5 pt-7">
         <img src={item.image} alt={`Лагатып канала ${item.title}`} className="size-32 rounded-full border-4 border-white/12 bg-white object-cover shadow-2xl shadow-black/45 transition duration-500 group-hover:scale-105" />
       </div>
