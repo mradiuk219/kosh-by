@@ -87,17 +87,24 @@ function shuffleMedia(items: Media[]) {
 }
 
 function getFreshMedia(items: Media[]) {
-  const datedItems = items.filter((item) => item.addedAt);
-  if (!datedItems.length) return items.slice(-4);
+  const datedItems = items
+    .map((item, index) => ({ item, index }))
+    .filter(({ item }) => item.addedAt);
+  if (!datedItems.length) return items.slice(-4).reverse();
 
-  const latestDate = datedItems.reduce((latest, item) => item.addedAt! > latest ? item.addedAt! : latest, '');
-  const latestDayItems = items.filter((item) => item.addedAt === latestDate);
+  const latestDay = datedItems.reduce((latest, { item }) => {
+    const day = item.addedAt!.slice(0, 10);
+    return day > latest ? day : latest;
+  }, '');
+  const latestDayItems = datedItems
+    .filter(({ item }) => item.addedAt!.slice(0, 10) === latestDay)
+    .sort((a, b) => b.item.addedAt!.localeCompare(a.item.addedAt!) || b.index - a.index)
+    .map(({ item }) => item);
   if (latestDayItems.length > 4) return latestDayItems;
 
-  return items
-    .map((item, index) => ({ item, index }))
-    .sort((a, b) => (a.item.addedAt ?? '').localeCompare(b.item.addedAt ?? '') || a.index - b.index)
-    .slice(-4)
+  return datedItems
+    .sort((a, b) => b.item.addedAt!.localeCompare(a.item.addedAt!) || b.index - a.index)
+    .slice(0, 4)
     .map(({ item }) => item);
 }
 
@@ -123,7 +130,7 @@ export function approvedSubmissionToMedia(submission: ApprovedSubmission): Media
     logoText: handle.slice(0, 2).toUpperCase(),
     background: backgrounds[platform],
     url: submission.url,
-    addedAt: (submission.reviewed_at ?? submission.created_at).slice(0, 10),
+    addedAt: submission.reviewed_at ?? submission.created_at,
   };
 }
 
