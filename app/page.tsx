@@ -1,16 +1,23 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { ArrowRight, Camera, Check, ChevronRight, Clapperboard, Menu, Mic2, Play, Search, Send } from 'lucide-react';
+import { ArrowRight, Camera, Check, ChevronRight, Clapperboard, Menu, Mic2, Play, Radio, Search, Send } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 
-type Media = { title: string; creator: string; platform: string; category: string; image: string; background: string; url?: string; featured?: boolean };
+type Media = { title: string; creator: string; platform: string; category: string; image?: string; logoText?: string; background: string; url?: string; featured?: boolean };
 
-const media: Media[] = [
+const bg = {
+  culture: 'https://images.unsplash.com/photo-1564399579883-451a5d44ec08?auto=format&fit=crop&w=900&q=78',
+  games: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=900&q=78',
+  talk: 'https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&w=900&q=78',
+  travel: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=78',
+};
+
+const youtubeMedia: Media[] = [
   { title: 'Будзьма беларусамі!', creator: 'Культура, гісторыя і беларуская ідэнтычнасць', platform: 'YouTube', category: 'Культура', image: '/channel-logos/budzma.png', background: 'https://images.unsplash.com/photo-1564399579883-451a5d44ec08?auto=format&fit=crop&w=900&q=78', url: 'https://www.youtube.com/@TheBudzma', featured: true },
   { title: 'Годна', creator: 'Беларуская культура, музыка і гісторыя', platform: 'YouTube', category: 'Культура', image: '/channel-logos/hodna.png', background: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=900&q=78', url: 'https://www.youtube.com/@hodnaby', featured: true },
   { title: 'Тутэйшы Шляхціч', creator: 'Беларуская гісторыя, мова і культура', platform: 'YouTube', category: 'Гісторыя', image: '/channel-logos/tutejszy.png', background: 'https://images.unsplash.com/photo-1461360370896-922624d12aa1?auto=format&fit=crop&w=900&q=78', url: 'https://www.youtube.com/@TutejszySzlachcicz', featured: true },
@@ -25,25 +32,62 @@ const media: Media[] = [
   { title: 'Слухай сюды', creator: 'Эпізоды беларускай гісторыі і культуры', platform: 'YouTube', category: 'Гісторыя', image: '/channel-logos/sluhaj.png', background: 'https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&w=900&q=78', url: 'https://www.youtube.com/@user-Sluhaj' },
 ];
 
-const filters = ['Усё', 'YouTube'];
+const socialMedia: Media[] = [
+  { title: 'Animatarka', creator: 'Анімацыя і беларуская творчасць', platform: 'Instagram', category: 'Творчасць', logoText: 'A', background: bg.culture, url: 'https://www.instagram.com/animatarka/' },
+  { title: 'Брудны Вожык', creator: 'Агучкі, пераклады і гумар па-беларуску', platform: 'Instagram', category: 'Гумар', logoText: 'В', background: bg.culture, url: 'https://www.instagram.com/brudny_vozhyk/' },
+  { title: 'Heta Top', creator: 'Беларускія знаходкі, культура і людзі', platform: 'Instagram', category: 'Культура', logoText: 'HT', background: bg.travel, url: 'https://www.instagram.com/heta.top/' },
+  { title: 'Белсат', creator: 'Беларускія навіны, гісторыі і рэпартажы', platform: 'Instagram', category: 'Медыя', logoText: 'Б', background: bg.talk, url: 'https://www.instagram.com/belsat/' },
+  { title: 'Загляне сонца', creator: 'Беларуская гісторыя і шлях да сваёй мовы', platform: 'Instagram', category: 'Гісторыя', logoText: 'ЗС', background: bg.culture, url: 'https://www.instagram.com/zahlianie_sonca/' },
+  { title: 'Nochy', creator: 'Музычны гурт і песні па-беларуску', platform: 'Instagram', category: 'Музыка', logoText: 'N', background: bg.talk, url: 'https://www.instagram.com/nochy_musicband/' },
+  { title: 'Мой родны гук', creator: 'Беларуская музыка і сучаснае гучанне', platform: 'Instagram', category: 'Музыка', logoText: 'МГ', background: bg.talk, url: 'https://www.instagram.com/mojrodnyhuk/' },
+  { title: 'Палеская эмігрантка', creator: 'Палессе, мова і асабістыя гісторыі', platform: 'Instagram', category: 'Блог', logoText: 'ПЭ', background: bg.travel, url: 'https://www.instagram.com/paleskaja.emigrantka/' },
+  { title: 'Ілля Сіўцоў', creator: 'Беларускамоўны аўтарскі блог', platform: 'Instagram', category: 'Блог', logoText: 'ІС', background: bg.travel, url: 'https://www.instagram.com/illasiucou/' },
+  { title: 'Пра мову', creator: 'Беларуская мова проста і штодзённа', platform: 'Instagram', category: 'Мова', logoText: 'ПМ', background: bg.culture, url: 'https://www.instagram.com/pramovu/' },
+  { title: 'Кася Мастак', creator: 'Мастацтва і творчасць па-беларуску', platform: 'Instagram', category: 'Мастацтва', logoText: 'КМ', background: bg.culture, url: 'https://www.instagram.com/kasia_mastak/' },
+  { title: 'Годна', creator: 'Беларуская культура, музыка і гісторыя', platform: 'Instagram', category: 'Культура', logoText: 'Г', background: bg.culture, url: 'https://www.instagram.com/hodna.by/' },
+
+  { title: 'Itbeard', creator: 'ІТ і тэхналогіі па-беларуску', platform: 'TikTok', category: 'Тэхналогіі', image: '/social-logos/tiktok-itbeard.jpg', background: bg.games, url: 'https://www.tiktok.com/@itbeard' },
+  { title: 'Ikbytech', creator: 'Праграмаванне і тэхналогіі па-беларуску', platform: 'TikTok', category: 'Тэхналогіі', logoText: 'IK', background: bg.games, url: 'https://www.tiktok.com/@ikbytech' },
+  { title: 'Першы Гікаўскі', creator: 'Гульні, медыя, серыялы і тэхналогіі', platform: 'TikTok', category: 'Гульні', logoText: 'ПГ', background: bg.games, url: 'https://www.tiktok.com/@piersyhikauski' },
+  { title: 'Праз космас', creator: 'Кароткія навіны і факты пра космас', platform: 'TikTok', category: 'Навука', logoText: 'ПК', background: bg.games, url: 'https://www.tiktok.com/@praz_kosmas' },
+  { title: 'Rudzi Game', creator: 'Агляды гульняў па-беларуску', platform: 'TikTok', category: 'Гульні', logoText: 'R', background: bg.games, url: 'https://www.tiktok.com/@rudzi_game' },
+  { title: 'Ms Bahiema', creator: 'Стрымы і гульнявы кантэнт па-беларуску', platform: 'TikTok', category: 'Гульні', logoText: 'MB', background: bg.games, url: 'https://www.tiktok.com/@ms.bahiema' },
+  { title: 'NadzeyaGames', creator: 'Агляды і гісторыі пра відэагульні', platform: 'TikTok', category: 'Гульні', logoText: 'NG', background: bg.games, url: 'https://www.tiktok.com/@nadzeyagames' },
+  { title: 'Брудны Вожык', creator: 'Беларускамоўныя агучкі і пераклады', platform: 'TikTok', category: 'Агучка', logoText: 'В', background: bg.culture, url: 'https://www.tiktok.com/@brudny_vozhyk' },
+  { title: 'Агучка Кавярня', creator: 'Серыялы, мультфільмы і кіно па-беларуску', platform: 'TikTok', category: 'Агучка', logoText: 'АК', background: bg.culture, url: 'https://www.tiktok.com/@kaviarnia' },
+  { title: 'Жужаль', creator: 'Пераклады розных відэа на беларускую мову', platform: 'TikTok', category: 'Агучка', logoText: 'Ж', background: bg.culture, url: 'https://www.tiktok.com/@zhuzhal' },
+  { title: 'Гаварун', creator: 'Кіно і мультфільмы ў беларускай агучцы', platform: 'TikTok', category: 'Агучка', logoText: 'Г', background: bg.culture, url: 'https://www.tiktok.com/@gavarun.by' },
+  { title: 'Bastiesmiles', creator: 'Беларускія міфы, традыцыі і гісторыя', platform: 'TikTok', category: 'Культура', logoText: 'B', background: bg.culture, url: 'https://www.tiktok.com/@bastiesmiles' },
+
+  ...['watafakablr','impani4','dzedmaksim','lepus81','nine_ravens_cemetery','angryralef','ms_bahiema','toddzie','shagrael_by','rudzi_belarus','bel_asch','sla5her_by','mihas_gareza'].map((handle, index) => ({
+    title: handle.replaceAll('_', ' '), creator: 'Беларускамоўныя жывыя эфіры, гульні і размовы', platform: 'Twitch', category: 'Стрымы',
+    image: index === 0 ? '/social-logos/twitch-watafakablr.jpg' : undefined, logoText: handle.slice(0, 2).toUpperCase(), background: index % 2 ? bg.talk : bg.games, url: `https://www.twitch.tv/${handle}`,
+  })),
+];
+
+const media = [...youtubeMedia, ...socialMedia];
+const filters = ['Усё', 'YouTube', 'Instagram', 'TikTok', 'Twitch'];
 
 function PlatformIcon({ platform }: { platform: string }) {
   if (platform === 'YouTube') return <Clapperboard className="size-3.5" />;
   if (platform === 'Instagram') return <Camera className="size-3.5" />;
+  if (platform === 'Twitch') return <Radio className="size-3.5" />;
   if (platform === 'Падкаст') return <Mic2 className="size-3.5" />;
   return <Play className="size-3.5" />;
 }
 
 function MediaCard({ item }: { item: Media }) {
+  const badgeClass = item.platform === 'YouTube' ? 'border-[#ff4e45] bg-[#ff0000]' : item.platform === 'Instagram' ? 'border-fuchsia-400/70 bg-gradient-to-r from-fuchsia-600 via-pink-500 to-orange-400' : item.platform === 'TikTok' ? 'border-cyan-300/70 bg-black shadow-cyan-500/20' : 'border-violet-300/70 bg-[#9146ff]';
+  const logoClass = item.platform === 'Instagram' ? 'bg-gradient-to-br from-violet-600 via-pink-500 to-orange-400' : item.platform === 'TikTok' ? 'bg-black' : item.platform === 'Twitch' ? 'bg-[#9146ff]' : 'bg-white';
   const card = (
     <article className="group relative aspect-[4/5] w-[72vw] max-w-[285px] shrink-0 overflow-hidden rounded-2xl border border-white/8 bg-card transition hover:-translate-y-1 hover:border-white/20">
       <img src={item.background} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105" />
       <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/72 to-[#08090b]/98" />
       <div className="absolute inset-x-0 top-0 flex justify-center px-5 pt-7">
-        <img src={item.image} alt={`Лагатып канала ${item.title}`} className="size-32 rounded-full border-4 border-white/12 bg-white object-cover shadow-2xl shadow-black/45 transition duration-500 group-hover:scale-105" />
+        {item.image ? <img src={item.image} alt={`Лагатып канала ${item.title}`} className="size-32 rounded-full border-4 border-white/12 bg-white object-cover shadow-2xl shadow-black/45 transition duration-500 group-hover:scale-105" /> : <div aria-label={`Лагатып канала ${item.title}`} className={`grid size-32 place-items-center rounded-full border-4 border-white/15 text-3xl font-black text-white shadow-2xl shadow-black/45 transition duration-500 group-hover:scale-105 ${logoClass}`}>{item.logoText}</div>}
       </div>
       <div className="absolute inset-x-0 bottom-0 p-5">
-        <Badge className="mb-3 border-[#ff4e45] bg-[#ff0000] font-bold text-white shadow-lg shadow-red-950/35" variant="outline"><PlatformIcon platform={item.platform} /> {item.platform}</Badge>
+        <Badge className={`mb-3 font-bold text-white shadow-lg ${badgeClass}`} variant="outline"><PlatformIcon platform={item.platform} /> {item.platform}</Badge>
         <p className="mb-1 text-xs font-semibold text-secondary">{item.category}</p>
         <h3 className="text-lg font-bold leading-tight text-white">{item.title}</h3>
         <p className="mt-1 line-clamp-3 min-h-[3.75rem] text-sm leading-5 text-white/62">{item.creator}</p>
