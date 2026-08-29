@@ -11,18 +11,18 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTr
 type Media = { title: string; creator: string; platform: string; category: string; image: string; url?: string; featured?: boolean };
 
 const media: Media[] = [
-  { title: 'Будзьма беларусамі!', creator: 'Культура, гісторыя і беларуская ідэнтычнасць', platform: 'YouTube', category: 'Культура', image: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=900&q=82', url: 'https://www.youtube.com/@TheBudzma', featured: true },
-  { title: 'Годна', creator: 'Беларуская культура, музыка і гісторыя', platform: 'YouTube', category: 'Культура', image: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=900&q=82', url: 'https://www.youtube.com/@hodnaby', featured: true },
-  { title: 'Тутэйшы Шляхціч', creator: 'Беларуская гісторыя, мова і культура', platform: 'YouTube', category: 'Гісторыя', image: 'https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&w=900&q=82', url: 'https://www.youtube.com/@TutejszySzlachcicz', featured: true },
-  { title: 'ХАДАНОВІЧ', creator: 'Літаратура, паэзія і культурныя размовы', platform: 'YouTube', category: 'Кнігі', image: 'https://images.unsplash.com/photo-1503095396549-807759245b35?auto=format&fit=crop&w=900&q=82', url: 'https://www.youtube.com/@chadanovic', featured: true },
-  { title: 'PALATNO Media', creator: 'Гісторыі беларускіх гарадоў і супольнасцяў', platform: 'YouTube', category: 'Грамадства', image: 'https://images.unsplash.com/photo-1461360370896-922624d12aa1?auto=format&fit=crop&w=900&q=82', url: 'https://www.youtube.com/@palatno' },
-  { title: 'Рудзі', creator: 'Гульні і гульнявая індустрыя па-беларуску', platform: 'YouTube', category: 'Гульні', image: 'https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=900&q=82', url: 'https://www.youtube.com/@Rudzi' },
-  { title: 'Berasnevy', creator: 'Дом, майстэрства і жыццё ў беларускай вёсцы', platform: 'YouTube', category: 'Дом', image: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=900&q=82', url: 'https://www.youtube.com/@Berasnevy' },
-  { title: 'Konan Ŭ', creator: 'Казкі, мова і развагі пра беларускасць', platform: 'YouTube', category: 'Культура', image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=900&q=82', url: 'https://www.youtube.com/@Konan_V' },
-  { title: 'Віталь Чырвінскі', creator: 'Размовы пра ваенную гісторыю Беларусі', platform: 'YouTube', category: 'Гісторыя', image: 'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=900&q=82', url: 'https://www.youtube.com/@vital_chyrvinski' },
-  { title: 'Белсат History', creator: 'Дакументальныя фільмы і гісторыя Беларусі', platform: 'YouTube', category: 'Гісторыя', image: 'https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=900&q=82', url: 'https://www.youtube.com/@belsat_history' },
-  { title: 'Гісторыя на Свабодзе', creator: 'Размовы пра мінулае Беларусі і рэгіёна', platform: 'YouTube', category: 'Гісторыя', image: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=82', url: 'https://www.youtube.com/@svaboda-historyja' },
-  { title: 'Слухай сюды', creator: 'Эпізоды беларускай гісторыі і культуры', platform: 'YouTube', category: 'Гісторыя', image: 'https://images.unsplash.com/photo-1581368135153-a506cf13b1e1?auto=format&fit=crop&w=900&q=82', url: 'https://www.youtube.com/@user-Sluhaj' },
+  { title: 'Будзьма беларусамі!', creator: 'Культура, гісторыя і беларуская ідэнтычнасць', platform: 'YouTube', category: 'Культура', image: '/channel-logos/budzma.png', url: 'https://www.youtube.com/@TheBudzma', featured: true },
+  { title: 'Годна', creator: 'Беларуская культура, музыка і гісторыя', platform: 'YouTube', category: 'Культура', image: '/channel-logos/hodna.png', url: 'https://www.youtube.com/@hodnaby', featured: true },
+  { title: 'Тутэйшы Шляхціч', creator: 'Беларуская гісторыя, мова і культура', platform: 'YouTube', category: 'Гісторыя', image: '/channel-logos/tutejszy.png', url: 'https://www.youtube.com/@TutejszySzlachcicz', featured: true },
+  { title: 'ХАДАНОВІЧ', creator: 'Літаратура, паэзія і культурныя размовы', platform: 'YouTube', category: 'Кнігі', image: '/channel-logos/chadanovic.png', url: 'https://www.youtube.com/@chadanovic', featured: true },
+  { title: 'PALATNO Media', creator: 'Гісторыі беларускіх гарадоў і супольнасцяў', platform: 'YouTube', category: 'Грамадства', image: '/channel-logos/palatno.png', url: 'https://www.youtube.com/@palatno' },
+  { title: 'Рудзі', creator: 'Гульні і гульнявая індустрыя па-беларуску', platform: 'YouTube', category: 'Гульні', image: '/channel-logos/rudzi.png', url: 'https://www.youtube.com/@Rudzi' },
+  { title: 'Vozhyk', creator: 'Беларускамоўныя агучкі, гумар і пераклады', platform: 'YouTube', category: 'Гумар', image: '/channel-logos/vozhyk.png', url: 'https://www.youtube.com/@vozh_voice' },
+  { title: 'Konan Ŭ', creator: 'Казкі, мова і развагі пра беларускасць', platform: 'YouTube', category: 'Культура', image: '/channel-logos/konan.png', url: 'https://www.youtube.com/@Konan_V' },
+  { title: 'Віталь Чырвінскі', creator: 'Размовы пра ваенную гісторыю Беларусі', platform: 'YouTube', category: 'Гісторыя', image: '/channel-logos/chyrvinski.png', url: 'https://www.youtube.com/@vital_chyrvinski' },
+  { title: 'Белсат History', creator: 'Дакументальныя фільмы і гісторыя Беларусі', platform: 'YouTube', category: 'Гісторыя', image: '/channel-logos/belsat-history.png', url: 'https://www.youtube.com/@belsat_history' },
+  { title: 'Гісторыя на Свабодзе', creator: 'Размовы пра мінулае Беларусі і рэгіёна', platform: 'YouTube', category: 'Гісторыя', image: '/channel-logos/svaboda-history.png', url: 'https://www.youtube.com/@svaboda-historyja' },
+  { title: 'Слухай сюды', creator: 'Эпізоды беларускай гісторыі і культуры', platform: 'YouTube', category: 'Гісторыя', image: '/channel-logos/sluhaj.png', url: 'https://www.youtube.com/@user-Sluhaj' },
 ];
 
 const filters = ['Усё', 'YouTube'];
@@ -37,13 +37,16 @@ function PlatformIcon({ platform }: { platform: string }) {
 function MediaCard({ item }: { item: Media }) {
   const card = (
     <article className="group relative aspect-[4/5] w-[72vw] max-w-[285px] shrink-0 overflow-hidden rounded-2xl border border-white/8 bg-card transition hover:-translate-y-1 hover:border-white/20">
-      <img src={item.image} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
-      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/10 to-transparent" />
+      <img src={item.image} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full scale-125 object-cover opacity-20 blur-2xl transition duration-500 group-hover:scale-[1.35]" />
+      <div className="absolute inset-0 bg-gradient-to-b from-[#20242b]/55 via-[#101318]/82 to-[#08090b]" />
+      <div className="absolute inset-x-0 top-0 flex justify-center px-5 pt-7">
+        <img src={item.image} alt={`Лагатып канала ${item.title}`} className="size-32 rounded-full border-4 border-white/12 bg-white object-cover shadow-2xl shadow-black/45 transition duration-500 group-hover:scale-105" />
+      </div>
       <div className="absolute inset-x-0 bottom-0 p-5">
-        <Badge className="mb-3 border-white/10 bg-black/38 text-white backdrop-blur" variant="outline"><PlatformIcon platform={item.platform} /> {item.platform}</Badge>
+        <Badge className="mb-3 border-[#ff4e45] bg-[#ff0000] font-bold text-white shadow-lg shadow-red-950/35" variant="outline"><PlatformIcon platform={item.platform} /> {item.platform}</Badge>
         <p className="mb-1 text-xs font-semibold text-secondary">{item.category}</p>
         <h3 className="text-lg font-bold leading-tight text-white">{item.title}</h3>
-        <p className="mt-1 line-clamp-1 text-sm text-white/55">{item.creator}</p>
+        <p className="mt-1 line-clamp-3 min-h-[3.75rem] text-sm leading-5 text-white/62">{item.creator}</p>
       </div>
     </article>
   );
