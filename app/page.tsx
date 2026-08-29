@@ -103,6 +103,42 @@ function getFreshMedia(items: Media[]) {
 
 const freshMedia = getFreshMedia(media);
 
+type ApprovedSubmission = { id: string; url: string; reason: string; created_at: string; reviewed_at: string | null };
+
+export function approvedSubmissionToMedia(submission: ApprovedSubmission): Media {
+  const parsed = new URL(submission.url);
+  const handle = decodeURIComponent(parsed.pathname.split('/').filter(Boolean).at(-1) ?? 'Новы аўтар').replace(/^@/, '').replaceAll('_', ' ');
+  const title = handle.replace(/\b\p{L}/gu, (letter) => letter.toUpperCase());
+  const host = parsed.hostname.toLowerCase();
+  const platform = host.includes('youtube') || host.includes('youtu.be') ? 'YouTube' : host.includes('instagram') ? 'Instagram' : host.includes('tiktok') ? 'TikTok' : host.includes('twitch') ? 'Twitch' : 'Сайт';
+  const lowerReason = submission.reason.toLowerCase();
+  const category = lowerReason.includes('гуль') || lowerReason.includes('game') ? 'Гульні' : lowerReason.includes('музык') || lowerReason.includes('пес') ? 'Музыка' : 'Супольнасць';
+  const backgrounds: Record<string, string> = { YouTube: bg.culture, Instagram: bg.travel, TikTok: bg.games, Twitch: bg.talk, Сайт: bg.culture };
+
+  return {
+    title,
+    creator: submission.reason,
+    platform,
+    category,
+    logoText: handle.slice(0, 2).toUpperCase(),
+    background: backgrounds[platform],
+    url: submission.url,
+    addedAt: (submission.reviewed_at ?? submission.created_at).slice(0, 10),
+  };
+}
+
+export async function fetchApprovedMedia() {
+  const response = await fetch('/api/submissions?view=approved', { cache: 'no-store' });
+  if (!response.ok) return [] as Media[];
+  const data = await response.json() as { submissions?: ApprovedSubmission[] };
+  return (data.submissions ?? []).map(approvedSubmissionToMedia);
+}
+
+function mergeMedia(base: Media[], approved: Media[]) {
+  const knownUrls = new Set(base.map((item) => item.url).filter(Boolean));
+  return [...base, ...approved.filter((item) => !knownUrls.has(item.url))];
+}
+
 function PlatformIcon({ platform }: { platform: string }) {
   if (platform === 'YouTube') return <Clapperboard className="size-3.5" />;
   if (platform === 'Instagram') return <Camera className="size-3.5" />;
@@ -210,9 +246,16 @@ export default function Home() {
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('Усё');
   const [catalogMedia, setCatalogMedia] = useState(media);
+  const [approvedMedia, setApprovedMedia] = useState<Media[]>([]);
 
   useEffect(() => {
-    setCatalogMedia(shuffleMedia(media));
+    let active = true;
+    void fetchApprovedMedia().then((approved) => {
+      if (!active) return;
+      setApprovedMedia(approved);
+      setCatalogMedia(shuffleMedia(mergeMedia(media, approved)));
+    });
+    return () => { active = false; };
   }, []);
 
   const results = useMemo(() => catalogMedia.filter((item) => {
@@ -258,7 +301,7 @@ export default function Home() {
         {results.length ? <><CarouselRow items={results} /><div className="mt-3 flex justify-center"><Button size="lg" className="h-11 rounded-full bg-primary px-7 font-bold" onClick={() => { window.location.href = '/catalog'; }}>Адкрыць каталог <ArrowRight className="size-4" /></Button></div></> : <div className="rounded-3xl border border-dashed border-white/12 bg-white/3 px-6 py-14 text-center"><Search className="mx-auto mb-4 size-7 text-white/30" /><h3 className="font-bold">Нічога не знайшлося</h3><p className="mt-2 text-sm text-white/50">Паспрабуй іншыя словы або абяры «Усё».</p><Button variant="link" className="mt-2 text-secondary" onClick={() => { setQuery(''); setFilter('Усё'); }}>Скінуць пошук</Button></div>}
       </section>
 
-      <section id="new" className="mx-auto max-w-[1500px] px-5 py-12 lg:px-10"><div className="mb-6 flex items-end justify-between"><div><p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-primary">Свежае ў кошы</p><h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Новыя знаходкі</h2></div><button className="hidden items-center gap-1 text-sm font-semibold text-white/55 sm:flex">Глядзець усе <ChevronRight className="size-4" /></button></div><CarouselRow items={freshMedia} /></section>
+      <section id="new" className="mx-auto max-w-[1500px] px-5 py-12 lg:px-10"><div className="mb-6 flex items-end justify-between"><div><p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-primary">Свежае ў кошы</p><h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Новыя знаходкі</h2></div><button className="hidden items-center gap-1 text-sm font-semibold text-white/55 sm:flex">Глядзець усе <ChevronRight className="size-4" /></button></div><CarouselRow items={approvedMedia.length ? getFreshMedia(mergeMedia(media, approvedMedia)) : freshMedia} /></section>
 
       <section id="about" className="mx-5 my-14 overflow-hidden rounded-[2rem] border border-white/8 bg-[radial-gradient(circle_at_15%_30%,rgba(70,131,214,.22),transparent_35%),radial-gradient(circle_at_90%_80%,rgba(233,101,42,.2),transparent_35%),#14161a] lg:mx-10"><div className="mx-auto grid max-w-5xl gap-8 px-6 py-16 text-center sm:px-12"><p className="mx-auto text-xs font-bold uppercase tracking-[0.2em] text-secondary">Супольны праект</p><h2 className="text-balance text-3xl font-black tracking-tight sm:text-5xl">Добры кантэнт ствараюць людзі</h2><p className="mx-auto max-w-2xl text-white/62">КОШ расце з вашых парад. Калі ведаеш аўтара, канал або падкаст па-беларуску — падзяліся спасылкай.</p><div><SubmitDialog /></div></div></section>
 

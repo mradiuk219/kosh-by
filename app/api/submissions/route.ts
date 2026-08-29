@@ -32,6 +32,13 @@ export async function POST(request: Request) {
 }
 
 export async function GET(request: Request) {
+  const view = new URL(request.url).searchParams.get('view');
+  if (view === 'approved') {
+    const db = await ensureSubmissionsTable();
+    const result = await db.prepare("SELECT id, url, reason, status, created_at, reviewed_at FROM submissions WHERE status = 'approved' ORDER BY reviewed_at DESC, created_at DESC").all<Omit<Submission, 'submitter_email'>>();
+    return Response.json({ submissions: result.results ?? [] });
+  }
+
   if (!isOwner(request)) return Response.json({ error: 'Няма доступу' }, { status: 403 });
   const db = await ensureSubmissionsTable();
   const result = await db.prepare("SELECT * FROM submissions ORDER BY CASE status WHEN 'pending' THEN 0 ELSE 1 END, created_at DESC").all<Submission>();

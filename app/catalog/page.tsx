@@ -1,14 +1,12 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, Search, SlidersHorizontal, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { MediaCard, media } from '../page';
+import { fetchApprovedMedia, MediaCard, media, type Media } from '../page';
 
 const platforms = ['YouTube', 'Instagram', 'TikTok', 'Twitch'];
-const categories = ['Усе катэгорыі', ...Array.from(new Set(media.map((item) => item.category))).sort((a, b) => a.localeCompare(b, 'be'))];
-
 type SortKey = 'popular' | 'az' | 'za' | 'newest' | 'platform';
 
 export default function CatalogPage() {
@@ -16,10 +14,23 @@ export default function CatalogPage() {
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [category, setCategory] = useState('Усе катэгорыі');
   const [sort, setSort] = useState<SortKey>('popular');
+  const [catalogItems, setCatalogItems] = useState<Media[]>(media);
+
+  useEffect(() => {
+    let active = true;
+    void fetchApprovedMedia().then((approved) => {
+      if (!active) return;
+      const knownUrls = new Set(media.map((item) => item.url).filter(Boolean));
+      setCatalogItems([...media, ...approved.filter((item) => !knownUrls.has(item.url))]);
+    });
+    return () => { active = false; };
+  }, []);
+
+  const categories = useMemo(() => ['Усе катэгорыі', ...Array.from(new Set(catalogItems.map((item) => item.category))).sort((a, b) => a.localeCompare(b, 'be'))], [catalogItems]);
 
   const results = useMemo(() => {
     const needle = query.trim().toLowerCase();
-    const filtered = media.filter((item) => {
+    const filtered = catalogItems.filter((item) => {
       const matchesPlatform = !selectedPlatforms.length || selectedPlatforms.includes(item.platform);
       const matchesCategory = category === 'Усе катэгорыі' || item.category === category;
       const matchesQuery = !needle || `${item.title} ${item.creator} ${item.category} ${item.platform}`.toLowerCase().includes(needle);
@@ -33,7 +44,7 @@ export default function CatalogPage() {
       if (sort === 'platform') return a.platform.localeCompare(b.platform, 'be') || a.title.localeCompare(b.title, 'be');
       return Number(Boolean(b.featured)) - Number(Boolean(a.featured)) || a.title.localeCompare(b.title, 'be');
     });
-  }, [category, query, selectedPlatforms, sort]);
+  }, [catalogItems, category, query, selectedPlatforms, sort]);
 
   const togglePlatform = (platform: string) => {
     setSelectedPlatforms((current) => current.includes(platform) ? current.filter((item) => item !== platform) : [...current, platform]);
