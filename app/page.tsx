@@ -98,7 +98,7 @@ export default function Home() {
         <div className="mx-auto flex min-h-[620px] max-w-[1500px] items-end px-5 pb-20 lg:px-10"><div className="max-w-2xl">
           <h1 className="text-balance text-5xl font-black leading-[0.94] tracking-[-0.055em] text-white sm:text-7xl">Беларускае —<br />бліжэй, чым здаецца</h1>
           <p className="mt-6 max-w-xl text-base leading-relaxed text-white/70 sm:text-lg">Відэа, падкасты, аўтары і гісторыі па-беларуску — сабраныя ў адным месцы, каб цікавае не гублялася ў стужцы.</p>
-          <div className="mt-8 flex flex-wrap gap-3"><Button size="lg" className="h-11 rounded-full bg-primary px-7 font-bold"><Play className="size-4 fill-current" /> Глядзець выбар</Button><Button size="lg" variant="outline" className="h-11 rounded-full border-white/15 bg-white/8 px-7 text-white hover:bg-white/14 hover:text-white" onClick={() => document.querySelector('#catalog')?.scrollIntoView({ behavior: 'smooth' })}>Адкрыць каталог <ArrowRight className="size-4" /></Button></div>
+          <div className="mt-8"><Button size="lg" className="h-11 rounded-full bg-primary px-7 font-bold" onClick={() => document.querySelector('#catalog')?.scrollIntoView({ behavior: 'smooth' })}>Адкрыць каталог <ArrowRight className="size-4" /></Button></div>
         </div></div>
       </section>
 
