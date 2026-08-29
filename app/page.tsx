@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { ArrowRight, Camera, Check, ChevronRight, Clapperboard, Menu, Mic2, Play, Search, Send, Sparkles } from 'lucide-react';
+import { ArrowRight, Camera, Check, ChevronRight, Clapperboard, Menu, Mic2, Play, Search, Send } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -34,9 +34,9 @@ function PlatformIcon({ platform }: { platform: string }) {
   return <Play className="size-3.5" />;
 }
 
-function MediaCard({ item, wide = false }: { item: Media; wide?: boolean }) {
+function MediaCard({ item }: { item: Media }) {
   return (
-    <article className={`group relative shrink-0 overflow-hidden rounded-2xl border border-white/8 bg-card ${wide ? 'w-[82vw] max-w-[390px] aspect-[16/10]' : 'w-[68vw] max-w-[275px] aspect-[4/5]'}`}>
+    <article className="group relative aspect-[4/5] w-[72vw] max-w-[285px] shrink-0 overflow-hidden rounded-2xl border border-white/8 bg-card">
       <img src={item.image} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
       <div className="absolute inset-0 bg-gradient-to-t from-black via-black/10 to-transparent" />
       <div className="absolute inset-x-0 bottom-0 p-5">
@@ -96,22 +96,21 @@ export default function Home() {
         <img className="absolute inset-0 -z-20 h-full w-full object-cover object-center" src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=2200&q=88" alt="Ранішняе святло над краявідам" />
         <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,#111821_3%,rgba(17,24,33,.82)_36%,rgba(17,24,33,.18)_72%,rgba(17,24,33,.56)_100%),linear-gradient(0deg,#151b24_0%,transparent_58%)]" />
         <div className="mx-auto flex min-h-[620px] max-w-[1500px] items-end px-5 pb-20 lg:px-10"><div className="max-w-2xl">
-          <div className="mb-5 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-secondary"><Sparkles className="size-4" /> Выбар рэдакцыі</div>
           <h1 className="text-balance text-5xl font-black leading-[0.94] tracking-[-0.055em] text-white sm:text-7xl">Беларускае —<br />бліжэй, чым здаецца</h1>
           <p className="mt-6 max-w-xl text-base leading-relaxed text-white/70 sm:text-lg">Відэа, падкасты, аўтары і гісторыі па-беларуску — сабраныя ў адным месцы, каб цікавае не гублялася ў стужцы.</p>
           <div className="mt-8 flex flex-wrap gap-3"><Button size="lg" className="h-11 rounded-full bg-primary px-7 font-bold"><Play className="size-4 fill-current" /> Глядзець выбар</Button><Button size="lg" variant="outline" className="h-11 rounded-full border-white/15 bg-white/8 px-7 text-white hover:bg-white/14 hover:text-white" onClick={() => document.querySelector('#catalog')?.scrollIntoView({ behavior: 'smooth' })}>Адкрыць каталог <ArrowRight className="size-4" /></Button></div>
         </div></div>
       </section>
 
-      <section id="catalog" className="mx-auto max-w-[1500px] px-5 pb-12 lg:px-10">
+      <section id="catalog" className="mx-auto max-w-[1500px] px-5 pb-12 pt-6 lg:px-10">
         <div className="mb-6 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between"><div><p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-secondary">Знайдзі сваё</p><h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Каталог КОШа</h2></div><div className="relative block sm:hidden"><Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-white/40" /><Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Шукаць кантэнт" className="h-11 border-white/10 bg-white/6 pl-9" /></div></div>
         <div className="mb-7 flex gap-2 overflow-x-auto pb-2 [scrollbar-width:none]">{filters.map((name) => <Button key={name} onClick={() => setFilter(name)} variant={filter === name ? 'secondary' : 'outline'} className={`h-9 shrink-0 rounded-full px-4 ${filter !== name ? 'border-white/10 bg-white/4 text-white/65' : ''}`}>{name}</Button>)}</div>
-        {results.length ? <div className="flex gap-4 overflow-x-auto pb-5 [scrollbar-width:none]">{results.map((item) => <MediaCard key={item.title} item={item} wide={Boolean(item.featured)} />)}</div> : <div className="rounded-3xl border border-dashed border-white/12 bg-white/3 px-6 py-14 text-center"><Search className="mx-auto mb-4 size-7 text-white/30" /><h3 className="font-bold">Нічога не знайшлося</h3><p className="mt-2 text-sm text-white/50">Паспрабуй іншыя словы або абяры «Усё».</p><Button variant="link" className="mt-2 text-secondary" onClick={() => { setQuery(''); setFilter('Усё'); }}>Скінуць пошук</Button></div>}
+        {results.length ? <div className="flex gap-4 overflow-x-auto pb-5 [scrollbar-width:none]">{results.map((item) => <MediaCard key={item.title} item={item} />)}</div> : <div className="rounded-3xl border border-dashed border-white/12 bg-white/3 px-6 py-14 text-center"><Search className="mx-auto mb-4 size-7 text-white/30" /><h3 className="font-bold">Нічога не знайшлося</h3><p className="mt-2 text-sm text-white/50">Паспрабуй іншыя словы або абяры «Усё».</p><Button variant="link" className="mt-2 text-secondary" onClick={() => { setQuery(''); setFilter('Усё'); }}>Скінуць пошук</Button></div>}
       </section>
 
       <section id="new" className="mx-auto max-w-[1500px] px-5 py-12 lg:px-10"><div className="mb-6 flex items-end justify-between"><div><p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-primary">Свежае ў кошы</p><h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Новыя знаходкі</h2></div><button className="hidden items-center gap-1 text-sm font-semibold text-white/55 sm:flex">Глядзець усе <ChevronRight className="size-4" /></button></div><div className="flex gap-4 overflow-x-auto pb-5 [scrollbar-width:none]">{media.slice(4).map((item) => <MediaCard key={item.title} item={item} />)}</div></section>
 
-      <section id="about" className="mx-5 my-14 overflow-hidden rounded-[2rem] border border-white/8 bg-[radial-gradient(circle_at_15%_30%,rgba(70,131,214,.22),transparent_35%),radial-gradient(circle_at_90%_80%,rgba(233,101,42,.2),transparent_35%),#14161a] lg:mx-10"><div className="mx-auto grid max-w-5xl gap-8 px-6 py-16 text-center sm:px-12"><p className="mx-auto text-xs font-bold uppercase tracking-[0.2em] text-secondary">Супольны праект</p><h2 className="text-balance text-3xl font-black tracking-tight sm:text-5xl">Добры кантэнт знаходзяць людзі</h2><p className="mx-auto max-w-2xl text-white/62">КОШ расце з вашых парад. Калі ведаеш аўтара, канал або падкаст па-беларуску — падзяліся спасылкай.</p><div><SubmitDialog /></div></div></section>
+      <section id="about" className="mx-5 my-14 overflow-hidden rounded-[2rem] border border-white/8 bg-[radial-gradient(circle_at_15%_30%,rgba(70,131,214,.22),transparent_35%),radial-gradient(circle_at_90%_80%,rgba(233,101,42,.2),transparent_35%),#14161a] lg:mx-10"><div className="mx-auto grid max-w-5xl gap-8 px-6 py-16 text-center sm:px-12"><p className="mx-auto text-xs font-bold uppercase tracking-[0.2em] text-secondary">Супольны праект</p><h2 className="text-balance text-3xl font-black tracking-tight sm:text-5xl">Добры кантэнт ствараюць людзі</h2><p className="mx-auto max-w-2xl text-white/62">КОШ расце з вашых парад. Калі ведаеш аўтара, канал або падкаст па-беларуску — падзяліся спасылкай.</p><div><SubmitDialog /></div></div></section>
 
       <footer className="border-t border-white/8"><div className="mx-auto flex max-w-[1500px] flex-col gap-4 px-5 py-9 text-sm text-white/45 sm:flex-row sm:items-center sm:justify-between lg:px-10"><p><strong className="text-lg text-white">КОШ<span className="text-primary">.</span></strong> · Беларускі кантэнт у адным кошы</p><p>Зроблена для тых, хто шукае сваё.</p></div></footer>
     </main>
