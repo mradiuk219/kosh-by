@@ -36,5 +36,6 @@ export async function POST(request: Request) {
     } catch { return Response.json({ error: 'Гэты канал ужо ёсць у каталогу або ў чарзе.' }, { status: 409 }); }
   }
   await db.prepare('UPDATE youtube_candidates SET status = ?, reviewed_at = ? WHERE id = ?').bind(status, new Date().toISOString(), id).run();
+  if (status === 'approved') await db.prepare("DELETE FROM homepage_stats WHERE id = 'current'").run();
   return Response.json({ id, status });
 }

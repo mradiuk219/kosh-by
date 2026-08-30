@@ -107,6 +107,7 @@ export async function PATCH(request: Request) {
     } catch {
       return Response.json({ error: DUPLICATE_MESSAGE }, { status: 409 });
     }
+    await db.prepare("DELETE FROM homepage_stats WHERE id = 'current'").run();
     return Response.json({ id, status, metadata });
   }
   try {
@@ -116,5 +117,6 @@ export async function PATCH(request: Request) {
     return Response.json({ error: DUPLICATE_MESSAGE }, { status: 409 });
   }
   if (status === 'approved') await db.prepare("UPDATE submissions SET enrichment_status = 'failed' WHERE id = ?").bind(id).run();
+  if (status === 'approved') await db.prepare("DELETE FROM homepage_stats WHERE id = 'current'").run();
   return Response.json({ id, status });
 }
