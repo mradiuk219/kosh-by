@@ -68,7 +68,8 @@ const socialMedia: Media[] = [
 export const media = [...youtubeMedia, ...socialMedia].map((item) => item.platform === 'Instagram' ? { ...item, addedAt: '2026-08-29' } : item);
 const filters = ['Усё', 'YouTube', 'Instagram', 'TikTok', 'Twitch'];
 const platformCounts = Object.fromEntries(filters.slice(1).map((platform) => [platform, media.filter((item) => item.platform === platform).length]));
-const heroStats = [
+type HeroStat = { value: number | string; label: string; channel?: string; href?: string };
+const initialHeroStats: HeroStat[] = [
   { value: media.length, label: 'Колькасьць аўтараў' },
   { value: '442 тыс.', label: 'Найбольш падпісантаў', channel: 'БЕЛСАТ NEWS', href: 'https://www.youtube.com/@belsat_news' },
   { value: platformCounts.YouTube, label: 'Аўтараў з YouTube' },
@@ -264,6 +265,7 @@ export default function Home() {
   const [filter, setFilter] = useState('Усё');
   const [catalogMedia, setCatalogMedia] = useState(media);
   const [approvedMedia, setApprovedMedia] = useState<Media[]>([]);
+  const [heroStats, setHeroStats] = useState<HeroStat[]>(initialHeroStats);
 
   useEffect(() => {
     let active = true;
@@ -272,6 +274,23 @@ export default function Home() {
       setApprovedMedia(approved);
       setCatalogMedia(shuffleMedia(mergeMedia(media, approved)));
     });
+    return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    void fetch('/api/stats', { cache: 'no-store' }).then(async (response) => {
+      if (!response.ok || !active) return;
+      const stats = await response.json() as { total: number; platforms: Record<string, number>; topSubscribers: string; topChannel: string; topChannelUrl: string };
+      setHeroStats([
+        { value: stats.total, label: 'Колькасьць аўтараў' },
+        { value: stats.topSubscribers, label: 'Найбольш падпісантаў', channel: stats.topChannel, href: stats.topChannelUrl },
+        { value: stats.platforms.YouTube ?? 0, label: 'Аўтараў з YouTube' },
+        { value: stats.platforms.Twitch ?? 0, label: 'Аўтараў з Twitch' },
+        { value: stats.platforms.Instagram ?? 0, label: 'Аўтараў з Instagram' },
+        { value: stats.platforms.TikTok ?? 0, label: 'Аўтараў з TikTok' },
+      ]);
+    }).catch(() => {});
     return () => { active = false; };
   }, []);
 
