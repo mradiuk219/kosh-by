@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowLeft, Check, Clock3, ExternalLink, RefreshCw, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { Submission } from '@/lib/submissions';
@@ -20,6 +20,7 @@ export default function AdminPage() {
   const [lastRun, setLastRun] = useState<DiscoveryRun | null>(null);
   const [configured, setConfigured] = useState(false);
   const [discovering, setDiscovering] = useState(false);
+  const autoDiscoveryStarted = useRef(false);
 
   const load = useCallback(async () => {
     const [response, discoveryResponse] = await Promise.all([fetch('/api/submissions', { cache: 'no-store' }), fetch('/api/youtube-discovery', { cache: 'no-store' })]);
@@ -53,6 +54,14 @@ export default function AdminPage() {
     if (response.ok) { setCandidates((current) => current.map((item) => item.id === id ? { ...item, status, reviewed_at: new Date().toISOString() } : item)); if (status === 'approved') await load(); }
     else setActionError(((await response.json().catch(() => null)) as { error?: string } | null)?.error ?? 'Не ўдалося апрацаваць кандыдата');
   };
+
+  useEffect(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    if (!loading && configured && !autoDiscoveryStarted.current && lastRun?.started_at.slice(0, 10) !== today) {
+      autoDiscoveryStarted.current = true;
+      void runDiscovery();
+    }
+  }, [configured, lastRun, loading]);
 
   const visibleItems = items.filter((item) => filter === 'all' || (filter === 'pending' ? item.status === 'pending' : item.status !== 'pending'));
   const pendingCount = items.filter((item) => item.status === 'pending').length;
