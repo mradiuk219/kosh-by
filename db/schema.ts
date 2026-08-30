@@ -11,7 +11,8 @@ export const submissionsSchema = `CREATE TABLE IF NOT EXISTS submissions (
   category TEXT,
   platform TEXT,
   avatar_url TEXT,
-  enrichment_status TEXT
+  enrichment_status TEXT,
+  canonical_key TEXT
 )`;
 
 export const homepageStatsSchema = `CREATE TABLE IF NOT EXISTS homepage_stats (

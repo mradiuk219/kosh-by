@@ -1,10 +1,24 @@
 import { ensureSubmissionsTable, type Submission } from '@/lib/submissions';
 import { enrichChannel } from '@/lib/enrich-channel';
+import { channelIdentity } from '@/lib/channel-identity';
 
 const OWNER_EMAIL = 'radziuk219@gmail.com';
 
 function isOwner(request: Request) {
   return request.headers.get('oai-authenticated-user-email')?.toLowerCase() === OWNER_EMAIL;
+}
+
+async function backfillCanonicalKeys(db: Awaited<ReturnType<typeof ensureSubmissionsTable>>) {
+  const rows = await db.prepare("SELECT * FROM submissions WHERE status IN ('pending', 'approved') AND canonical_key IS NULL ORDER BY CASE status WHEN 'approved' THEN 0 ELSE 1 END, reviewed_at ASC, created_at ASC").all<Submission>();
+  for (const item of rows.results ?? []) {
+    const key = channelIdentity(item.url);
+    if (!key) continue;
+    try {
+      await db.prepare('UPDATE submissions SET canonical_key = ? WHERE id = ?').bind(key, item.id).run();
+    } catch {
+      await db.prepare("UPDATE submissions SET status = 'rejected', reviewed_at = ? WHERE id = ?").bind(new Date().toISOString(), item.id).run();
+    }
+  }
 }
 
 export async function POST(request: Request) {
@@ -22,12 +36,16 @@ export async function POST(request: Request) {
   if (!reason || reason.length > 500) return Response.json({ error: 'Дадай кароткае апісанне' }, { status: 400 });
 
   const db = await ensureSubmissionsTable();
+  await backfillCanonicalKeys(db);
   const id = crypto.randomUUID();
   const createdAt = new Date().toISOString();
   const submitterEmail = request.headers.get('oai-authenticated-user-email');
-  await db.prepare('INSERT INTO submissions (id, url, reason, status, submitter_email, created_at) VALUES (?, ?, ?, ?, ?, ?)')
-    .bind(id, url, reason, 'pending', submitterEmail, createdAt)
-    .run();
+  try {
+    await db.prepare('INSERT INTO submissions (id, url, reason, status, submitter_email, created_at, canonical_key) VALUES (?, ?, ?, ?, ?, ?, ?)')
+      .bind(id, url, reason, 'pending', submitterEmail, createdAt, channelIdentity(url)).run();
+  } catch {
+    return Response.json({ error: 'Гэты канал на гэтай платформе ўжо ёсць у КОШы або чакае праверкі' }, { status: 409 });
+  }
 
   return Response.json({ id, status: 'pending' }, { status: 201 });
 }
@@ -36,6 +54,7 @@ export async function GET(request: Request) {
   const view = new URL(request.url).searchParams.get('view');
   if (view === 'approved') {
     const db = await ensureSubmissionsTable();
+    await backfillCanonicalKeys(db);
     const missing = await db.prepare("SELECT * FROM submissions WHERE status = 'approved' AND (enrichment_status IS NULL OR enrichment_status = 'pending') ORDER BY reviewed_at DESC LIMIT 4").all<Submission>();
     await Promise.all((missing.results ?? []).map(async (item) => {
       try {
@@ -52,6 +71,7 @@ export async function GET(request: Request) {
 
   if (!isOwner(request)) return Response.json({ error: 'Няма доступу' }, { status: 403 });
   const db = await ensureSubmissionsTable();
+  await backfillCanonicalKeys(db);
   const result = await db.prepare("SELECT * FROM submissions ORDER BY CASE status WHEN 'pending' THEN 0 ELSE 1 END, created_at DESC").all<Submission>();
   return Response.json({ submissions: result.results ?? [] });
 }
@@ -72,13 +92,20 @@ export async function PATCH(request: Request) {
     try { metadata = await enrichChannel(submission.url, submission.reason); } catch { metadata = null; }
   }
   if (status === 'approved' && metadata) {
-    await db.prepare("UPDATE submissions SET status = ?, reviewed_at = ?, title = ?, description = ?, category = ?, platform = ?, avatar_url = ?, enrichment_status = 'complete' WHERE id = ?")
-      .bind(status, new Date().toISOString(), metadata.title, metadata.description, metadata.category, metadata.platform, metadata.avatarUrl, id).run();
+    try {
+      await db.prepare("UPDATE submissions SET status = ?, reviewed_at = ?, title = ?, description = ?, category = ?, platform = ?, avatar_url = ?, enrichment_status = 'complete', canonical_key = ? WHERE id = ?")
+        .bind(status, new Date().toISOString(), metadata.title, metadata.description, metadata.category, metadata.platform, metadata.avatarUrl, channelIdentity(submission.url), id).run();
+    } catch {
+      return Response.json({ error: 'Гэты канал на гэтай платформе ўжо прыняты' }, { status: 409 });
+    }
     return Response.json({ id, status, metadata });
   }
-  await db.prepare('UPDATE submissions SET status = ?, reviewed_at = ? WHERE id = ?')
-    .bind(status, status === 'pending' ? null : new Date().toISOString(), id)
-    .run();
+  try {
+    await db.prepare('UPDATE submissions SET status = ?, reviewed_at = ?, canonical_key = ? WHERE id = ?')
+      .bind(status, status === 'pending' ? null : new Date().toISOString(), channelIdentity(submission.url), id).run();
+  } catch {
+    return Response.json({ error: 'Гэты канал на гэтай платформе ўжо прыняты' }, { status: 409 });
+  }
   if (status === 'approved') await db.prepare("UPDATE submissions SET enrichment_status = 'failed' WHERE id = ?").bind(id).run();
   return Response.json({ id, status });
 }

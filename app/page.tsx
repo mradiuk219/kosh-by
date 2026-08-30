@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { channelIdentity } from '@/lib/channel-identity';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 
 export type Media = { title: string; creator: string; platform: string; category: string; image?: string; logoText?: string; background: string; url?: string; featured?: boolean; addedAt?: string };
@@ -144,8 +145,14 @@ export async function fetchApprovedMedia() {
 }
 
 function mergeMedia(base: Media[], approved: Media[]) {
-  const knownUrls = new Set(base.map((item) => item.url).filter(Boolean));
-  return [...base, ...approved.filter((item) => !knownUrls.has(item.url))];
+  const knownChannels = new Set(base.map((item) => channelIdentity(item.url)).filter(Boolean));
+  const uniqueApproved = approved.filter((item) => {
+    const key = channelIdentity(item.url);
+    if (!key || knownChannels.has(key)) return false;
+    knownChannels.add(key);
+    return true;
+  });
+  return [...base, ...uniqueApproved];
 }
 
 function PlatformIcon({ platform }: { platform: string }) {
