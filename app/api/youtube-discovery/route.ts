@@ -1,5 +1,5 @@
 import { ensureSubmissionsTable } from '@/lib/submissions';
-import { ensureYoutubeDiscoveryTables, hasYoutubeKey, runYoutubeDiscovery, type DiscoveryRun, type YoutubeCandidate } from '@/lib/youtube-discovery';
+import { ensureYoutubeDiscoveryTables, hasYoutubeKey, hideKnownYoutubeCandidates, runYoutubeDiscovery, type DiscoveryRun, type YoutubeCandidate } from '@/lib/youtube-discovery';
 
 const OWNER_EMAIL = 'radziuk219@gmail.com';
 const isOwner = (request: Request) => request.headers.get('oai-authenticated-user-email')?.toLowerCase() === OWNER_EMAIL;
@@ -7,6 +7,7 @@ const isOwner = (request: Request) => request.headers.get('oai-authenticated-use
 export async function GET(request: Request) {
   if (!isOwner(request)) return Response.json({ error: 'Няма доступу' }, { status: 403 });
   const db = await ensureYoutubeDiscoveryTables();
+  await hideKnownYoutubeCandidates();
   const candidates = await db.prepare("SELECT * FROM youtube_candidates ORDER BY CASE status WHEN 'pending' THEN 0 ELSE 1 END, discovered_at DESC").all<YoutubeCandidate>();
   const runs = await db.prepare('SELECT * FROM youtube_discovery_runs ORDER BY started_at DESC LIMIT 1').all<DiscoveryRun>();
   return Response.json({ candidates: candidates.results ?? [], lastRun: runs.results?.[0] ?? null, configured: hasYoutubeKey() });

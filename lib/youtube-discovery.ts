@@ -1,5 +1,5 @@
 import { env } from 'cloudflare:workers';
-import { staticChannelIdentities } from '@/lib/channel-identity';
+import { staticChannelIdentities, staticYoutubeChannels } from '@/lib/channel-identity';
 import { submissionsDb } from '@/lib/submissions';
 
 export type YoutubeCandidate = {
@@ -55,6 +55,20 @@ function languageAssessment(text: string) {
   return { score: Number(score.toFixed(2)), evidence };
 }
 
+const normalizedTitle = (value: string) => value.toLowerCase().normalize('NFKD').replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+
+export async function hideKnownYoutubeCandidates() {
+  const db = await ensureYoutubeDiscoveryTables();
+  const approved = await db.prepare("SELECT title FROM submissions WHERE status = 'approved' AND platform = 'YouTube' AND title IS NOT NULL").all<{ title: string }>();
+  const knownTitles = new Set([...staticYoutubeChannels.map((item) => item.title), ...(approved.results ?? []).map((item) => item.title)].map(normalizedTitle));
+  const pending = await db.prepare("SELECT id, title FROM youtube_candidates WHERE status = 'pending'").all<{ id: string; title: string }>();
+  for (const candidate of pending.results ?? []) {
+    if (knownTitles.has(normalizedTitle(candidate.title))) {
+      await db.prepare("UPDATE youtube_candidates SET status = 'rejected', reviewed_at = ? WHERE id = ?").bind(new Date().toISOString(), candidate.id).run();
+    }
+  }
+}
+
 export async function ensureYoutubeDiscoveryTables() {
   const db = submissionsDb();
   await db.prepare(`CREATE TABLE IF NOT EXISTS youtube_candidates (
@@ -94,6 +108,17 @@ export async function runYoutubeDiscovery() {
   const startedAt = new Date().toISOString();
   await db.prepare("INSERT INTO youtube_discovery_runs (id, status, started_at) VALUES (?, 'running', ?)").bind(runId, startedAt).run();
   try {
+    const knownChannelIds = new Set<string>();
+    await Promise.all(staticYoutubeChannels.map(async ({ handle }) => {
+      const params = new URLSearchParams({ part: 'id', forHandle: handle });
+      const result = await youtubeJson<{ items?: ChannelItem[] }>(`channels?${params}`, key);
+      const id = result.items?.[0]?.id;
+      if (id) knownChannelIds.add(id.toLowerCase());
+    }));
+    const approvedChannels = await db.prepare("SELECT canonical_key FROM submissions WHERE status = 'approved' AND platform = 'YouTube' AND canonical_key IS NOT NULL").all<{ canonical_key: string }>();
+    for (const row of approvedChannels.results ?? []) {
+      if (row.canonical_key.startsWith('youtube:channel/')) knownChannelIds.add(row.canonical_key.slice('youtube:channel/'.length).toLowerCase());
+    }
     const discovered = new Map<string, { query: string; text: string }>();
     for (const query of QUERIES) {
       const params = new URLSearchParams({ part: 'snippet', type: 'video', order: 'date', maxResults: '25', relevanceLanguage: 'be', regionCode: 'BY', q: query });
@@ -109,7 +134,7 @@ export async function runYoutubeDiscovery() {
       const params = new URLSearchParams({ part: 'snippet,statistics', id: ids.slice(index, index + 50).join(','), maxResults: '50' });
       const result = await youtubeJson<{ items?: ChannelItem[] }>(`channels?${params}`, key);
       for (const channel of result.items ?? []) {
-        if (!channel.id || !channel.snippet?.title) continue;
+        if (!channel.id || !channel.snippet?.title || knownChannelIds.has(channel.id.toLowerCase())) continue;
         const seed = discovered.get(channel.id);
         const description = channel.snippet.description ?? '';
         const assessment = languageAssessment(`${channel.snippet.title} ${description} ${seed?.text ?? ''}`);
@@ -128,6 +153,7 @@ export async function runYoutubeDiscovery() {
         found += 1;
       }
     }
+    await hideKnownYoutubeCandidates();
     await db.prepare("UPDATE youtube_discovery_runs SET status = 'complete', found_count = ?, finished_at = ? WHERE id = ?").bind(found, new Date().toISOString(), runId).run();
     return found;
   } catch (error) {

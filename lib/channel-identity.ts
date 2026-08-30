@@ -20,6 +20,21 @@ export const staticChannelIdentities = new Set([
   'twitch:shagrael_by', 'twitch:rudzi_belarus', 'twitch:bel_asch', 'twitch:sla5her_by', 'twitch:mihas_gareza',
 ]);
 
+export const staticYoutubeChannels = [
+  { handle: 'thebudzma', title: 'Будзьма беларусамі!' },
+  { handle: 'hodnaby', title: 'Годна' },
+  { handle: 'tutejszyszlachcicz', title: 'Тутэйшы Шляхціч' },
+  { handle: 'chadanovic', title: 'ХАДАНОВІЧ' },
+  { handle: 'palatno', title: 'PALATNO Media' },
+  { handle: 'rudzi', title: 'Рудзі' },
+  { handle: 'vozh_voice', title: 'Vozhyk' },
+  { handle: 'konan_v', title: 'Konan Ŭ' },
+  { handle: 'vital_chyrvinski', title: 'Віталь Чырвінскі' },
+  { handle: 'belsat_history', title: 'Белсат History' },
+  { handle: 'svaboda-historyja', title: 'Гісторыя на Свабодзе' },
+  { handle: 'user-sluhaj', title: 'Слухай сюды' },
+] as const;
+
 export function channelIdentity(sourceUrl?: string | null) {
   if (!sourceUrl) return null;
   try {
