@@ -47,3 +47,11 @@ export const youtubeDiscoveryRunsSchema = `CREATE TABLE IF NOT EXISTS youtube_di
   started_at TEXT NOT NULL,
   finished_at TEXT
 )`;
+
+export const catalogOverridesSchema = `CREATE TABLE IF NOT EXISTS catalog_overrides (
+  canonical_key TEXT PRIMARY KEY,
+  description TEXT NOT NULL,
+  category TEXT NOT NULL,
+  deleted INTEGER NOT NULL DEFAULT 0,
+  updated_at TEXT NOT NULL
+)`;

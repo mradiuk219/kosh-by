@@ -4,9 +4,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, Search, SlidersHorizontal, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { channelIdentity } from '@/lib/channel-identity';
 import { parseCategories } from '@/lib/categories';
-import { fetchApprovedMedia, MediaCard, media, type Media } from '../page';
+import { fetchCatalogData, MediaCard, media, type Media } from '../page';
 
 const platforms = ['YouTube', 'Instagram', 'TikTok', 'Twitch'];
 type SortKey = 'popular' | 'az' | 'za' | 'newest' | 'platform';
@@ -20,20 +19,9 @@ export default function CatalogPage() {
 
   useEffect(() => {
     let active = true;
-    void fetchApprovedMedia().then((approved) => {
+    void fetchCatalogData().then(({ catalog }) => {
       if (!active) return;
-      const knownChannels = new Set(
-        media.map((item) => channelIdentity(item.url)).filter(Boolean),
-      );
-      setCatalogItems([
-        ...media,
-        ...approved.filter((item) => {
-          const key = channelIdentity(item.url);
-          if (!key || knownChannels.has(key)) return false;
-          knownChannels.add(key);
-          return true;
-        }),
-      ]);
+      setCatalogItems(catalog);
     });
     return () => {
       active = false;

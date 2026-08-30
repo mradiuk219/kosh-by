@@ -28,6 +28,8 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { parseCategories } from '@/lib/categories';
+import { channelIdentity } from '@/lib/channel-identity';
+import { media } from '@/app/page';
 
 type Channel = {
   id: string;
@@ -37,6 +39,12 @@ type Channel = {
   category: string | null;
   platform: string | null;
   avatar_url: string | null;
+};
+type CatalogOverride = {
+  canonical_key: string;
+  description: string;
+  category: string;
+  deleted: number;
 };
 type Draft = { description: string; categories: string[] };
 const categories = [
@@ -75,8 +83,33 @@ export default function AdminChannelsPage() {
       setLoading(false);
       return;
     }
-    const data = (await response.json()) as { channels?: Channel[] };
-    const next = data.channels ?? [];
+    const data = (await response.json()) as {
+      channels?: Channel[];
+      overrides?: CatalogOverride[];
+    };
+    const overrides = new Map(
+      (data.overrides ?? []).map((item) => [item.canonical_key, item]),
+    );
+    const staticChannels = media.flatMap((item) => {
+      const key = channelIdentity(item.url);
+      if (!key) return [];
+      const override = overrides.get(key);
+      if (override?.deleted) return [];
+      return [
+        {
+          id: `static:${key}`,
+          url: item.url ?? '',
+          title: item.title,
+          description: override?.description ?? item.creator,
+          category: override?.category ?? item.category,
+          platform: item.platform,
+          avatar_url: item.image ?? null,
+        } satisfies Channel,
+      ];
+    });
+    const next = [...staticChannels, ...(data.channels ?? [])].sort((a, b) =>
+      (a.title ?? a.url).localeCompare(b.title ?? b.url, 'be'),
+    );
     setChannels(next);
     setDrafts(
       Object.fromEntries(
@@ -189,8 +222,8 @@ export default function AdminChannelsPage() {
             Каналы ў каталогу
           </h1>
           <p className="mt-2 text-sm text-white/45">
-            {channels.length} прынятых каналаў, дададзеных праз адмінку.
-            Убудаваныя карткі галоўнага каталога тут не паказваюцца.
+            {channels.length} каналаў з усіх крыніц: створаныя разам з сайтам,
+            прапанаваныя карыстальнікамі і знойдзеныя аўтаматычна.
           </p>
         </div>
         {message && (

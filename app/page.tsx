@@ -583,6 +583,41 @@ export async function fetchApprovedMedia() {
   return (data.submissions ?? []).map(approvedSubmissionToMedia);
 }
 
+type CatalogOverride = {
+  canonical_key: string;
+  description: string;
+  category: string;
+  deleted: number;
+};
+
+export async function fetchCatalogData() {
+  const [approved, overrideResponse] = await Promise.all([
+    fetchApprovedMedia(),
+    fetch('/api/catalog-overrides', { cache: 'no-store' }),
+  ]);
+  const overrideData = overrideResponse.ok
+    ? ((await overrideResponse.json()) as { overrides?: CatalogOverride[] })
+    : { overrides: [] as CatalogOverride[] };
+  const overrides = new Map(
+    (overrideData.overrides ?? []).map((item) => [item.canonical_key, item]),
+  );
+  const base = media.flatMap((item) => {
+    const key = channelIdentity(item.url);
+    const override = key ? overrides.get(key) : undefined;
+    if (override?.deleted) return [];
+    return [
+      override
+        ? {
+            ...item,
+            creator: override.description,
+            category: override.category,
+          }
+        : item,
+    ];
+  });
+  return { approved, catalog: mergeMedia(base, approved) };
+}
+
 function mergeMedia(base: Media[], approved: Media[]) {
   const knownChannels = new Set(
     base.map((item) => channelIdentity(item.url)).filter(Boolean),
@@ -880,10 +915,10 @@ export default function Home() {
 
   useEffect(() => {
     let active = true;
-    void fetchApprovedMedia().then((approved) => {
+    void fetchCatalogData().then(({ approved, catalog }) => {
       if (!active) return;
       setApprovedMedia(approved);
-      setCatalogMedia(shuffleMedia(mergeMedia(media, approved)));
+      setCatalogMedia(shuffleMedia(catalog));
     });
     return () => {
       active = false;
@@ -1161,9 +1196,7 @@ export default function Home() {
         </div>
         <CarouselRow
           items={
-            approvedMedia.length
-              ? getFreshMedia(mergeMedia(media, approvedMedia))
-              : freshMedia
+            approvedMedia.length ? getFreshMedia(approvedMedia) : freshMedia
           }
         />
       </section>

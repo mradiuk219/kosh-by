@@ -1,5 +1,9 @@
 import { ensureSubmissionsTable, type Submission } from '@/lib/submissions';
 import { serializeCategories } from '@/lib/categories';
+import {
+  ensureCatalogOverridesTable,
+  type CatalogOverride,
+} from '@/lib/catalog-overrides';
 
 const OWNER_EMAIL = 'radziuk219@gmail.com';
 const isOwner = (request: Request) =>
@@ -15,7 +19,14 @@ export async function GET(request: Request) {
       "SELECT id, url, title, description, category, platform, avatar_url, created_at, reviewed_at FROM submissions WHERE status = 'approved' ORDER BY lower(COALESCE(title, url)) ASC",
     )
     .all<Submission>();
-  return Response.json({ channels: result.results ?? [] });
+  await ensureCatalogOverridesTable();
+  const overrides = await db
+    .prepare('SELECT * FROM catalog_overrides')
+    .all<CatalogOverride>();
+  return Response.json({
+    channels: result.results ?? [],
+    overrides: overrides.results ?? [],
+  });
 }
 
 export async function PATCH(request: Request) {
@@ -44,6 +55,20 @@ export async function PATCH(request: Request) {
       { error: 'Выберыце ад адной да трох катэгорый' },
       { status: 400 },
     );
+  if (id.startsWith('static:')) {
+    const canonicalKey = id.slice('static:'.length);
+    if (!canonicalKey)
+      return Response.json({ error: 'Канал не знойдзены' }, { status: 404 });
+    const db = await ensureCatalogOverridesTable();
+    await db
+      .prepare(
+        `INSERT INTO catalog_overrides (canonical_key, description, category, deleted, updated_at) VALUES (?, ?, ?, 0, ?)
+         ON CONFLICT(canonical_key) DO UPDATE SET description = excluded.description, category = excluded.category, deleted = 0, updated_at = excluded.updated_at`,
+      )
+      .bind(canonicalKey, description, category, new Date().toISOString())
+      .run();
+    return Response.json({ id, description, categories: category.split('|') });
+  }
   const db = await ensureSubmissionsTable();
   const current = await db
     .prepare("SELECT id FROM submissions WHERE id = ? AND status = 'approved'")
@@ -66,6 +91,21 @@ export async function DELETE(request: Request) {
   const id = new URL(request.url).searchParams.get('id') ?? '';
   if (!id)
     return Response.json({ error: 'Не пазначаны канал' }, { status: 400 });
+  if (id.startsWith('static:')) {
+    const canonicalKey = id.slice('static:'.length);
+    if (!canonicalKey)
+      return Response.json({ error: 'Канал не знойдзены' }, { status: 404 });
+    const db = await ensureCatalogOverridesTable();
+    await db
+      .prepare(
+        `INSERT INTO catalog_overrides (canonical_key, description, category, deleted, updated_at) VALUES (?, '', '', 1, ?)
+         ON CONFLICT(canonical_key) DO UPDATE SET deleted = 1, updated_at = excluded.updated_at`,
+      )
+      .bind(canonicalKey, new Date().toISOString())
+      .run();
+    await db.prepare("DELETE FROM homepage_stats WHERE id = 'current'").run();
+    return Response.json({ id, deleted: true });
+  }
   const db = await ensureSubmissionsTable();
   const current = await db
     .prepare("SELECT id FROM submissions WHERE id = ? AND status = 'approved'")
