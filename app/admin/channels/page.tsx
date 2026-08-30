@@ -1,8 +1,9 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, ExternalLink, Save, Trash2 } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Save, Search, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import {
   NativeSelect,
@@ -75,6 +76,7 @@ export default function AdminChannelsPage() {
   const [forbidden, setForbidden] = useState(false);
   const [busyId, setBusyId] = useState('');
   const [message, setMessage] = useState('');
+  const [query, setQuery] = useState('');
 
   const load = useCallback(async () => {
     const response = await fetch('/api/admin/channels', { cache: 'no-store' });
@@ -144,6 +146,14 @@ export default function AdminChannelsPage() {
       ),
     [channels, drafts],
   );
+  const filteredChannels = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+    return needle
+      ? channels.filter((item) =>
+          (item.title ?? '').toLowerCase().includes(needle),
+        )
+      : channels;
+  }, [channels, query]);
 
   const save = async (id: string) => {
     setBusyId(id);
@@ -226,6 +236,21 @@ export default function AdminChannelsPage() {
             прапанаваныя карыстальнікамі і знойдзеныя аўтаматычна.
           </p>
         </div>
+        <div className="relative mb-5 max-w-xl">
+          <Search className="pointer-events-none absolute top-6 left-4 size-4 -translate-y-1/2 text-white/35" />
+          <Input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Пошук аўтара па назве канала"
+            aria-label="Пошук аўтара па назве канала"
+            className="h-12 rounded-full border-white/10 bg-white/5 pr-4 pl-11 text-white placeholder:text-white/30"
+          />
+          {query && (
+            <p className="mt-2 pl-3 text-xs text-white/35">
+              Знойдзена: {filteredChannels.length}
+            </p>
+          )}
+        </div>
         {message && (
           <p
             role="status"
@@ -264,7 +289,7 @@ export default function AdminChannelsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {channels.map((item) => (
+                {filteredChannels.map((item) => (
                   <TableRow
                     key={item.id}
                     className="border-white/8 align-top hover:bg-white/[0.03]"
