@@ -238,10 +238,13 @@ function SubmitDialog() {
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ url: form.get('url'), reason: form.get('reason') }),
       });
-      if (!response.ok) throw new Error('Не ўдалося захаваць прапанову');
+      if (!response.ok) {
+        const data = await response.json().catch(() => null) as { error?: string } | null;
+        throw new Error(data?.error || 'Не ўдалося захаваць прапанову');
+      }
       setSent(true);
-    } catch {
-      setError('Не ўдалося адправіць. Калі ласка, паспрабуй яшчэ раз.');
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Не ўдалося адправіць. Калі ласка, паспрабуй яшчэ раз.');
     } finally {
       setSending(false);
     }

@@ -5,6 +5,21 @@ const platformHosts = [
   ['twitch', ['twitch.tv']],
 ] as const;
 
+export const staticChannelIdentities = new Set([
+  'youtube:thebudzma', 'youtube:hodnaby', 'youtube:tutejszyszlachcicz', 'youtube:chadanovic',
+  'youtube:palatno', 'youtube:rudzi', 'youtube:vozh_voice', 'youtube:konan_v',
+  'youtube:vital_chyrvinski', 'youtube:belsat_history', 'youtube:svaboda-historyja', 'youtube:user-sluhaj',
+  'instagram:animatarka', 'instagram:brudny_vozhyk', 'instagram:heta.top', 'instagram:belsat',
+  'instagram:zahlianie_sonca', 'instagram:nochy_musicband', 'instagram:mojrodnyhuk', 'instagram:paleskaja.emigrantka',
+  'instagram:illasiucou', 'instagram:pramovu', 'instagram:kasia_mastak', 'instagram:hodna.by',
+  'tiktok:itbeard', 'tiktok:ikbytech', 'tiktok:piersyhikauski', 'tiktok:praz_kosmas',
+  'tiktok:rudzi_game', 'tiktok:ms.bahiema', 'tiktok:nadzeyagames', 'tiktok:brudny_vozhyk',
+  'tiktok:kaviarnia', 'tiktok:zhuzhal', 'tiktok:gavarun.by', 'tiktok:bastiesmiles',
+  'twitch:watafakablr', 'twitch:impani4', 'twitch:dzedmaksim', 'twitch:lepus81',
+  'twitch:nine_ravens_cemetery', 'twitch:angryralef', 'twitch:ms_bahiema', 'twitch:toddzie',
+  'twitch:shagrael_by', 'twitch:rudzi_belarus', 'twitch:bel_asch', 'twitch:sla5her_by', 'twitch:mihas_gareza',
+]);
+
 export function channelIdentity(sourceUrl?: string | null) {
   if (!sourceUrl) return null;
   try {

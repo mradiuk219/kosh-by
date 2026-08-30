@@ -1,8 +1,9 @@
 import { ensureSubmissionsTable, type Submission } from '@/lib/submissions';
 import { enrichChannel } from '@/lib/enrich-channel';
-import { channelIdentity } from '@/lib/channel-identity';
+import { channelIdentity, staticChannelIdentities } from '@/lib/channel-identity';
 
 const OWNER_EMAIL = 'radziuk219@gmail.com';
+const DUPLICATE_MESSAGE = 'Вы спрабуеце прапанаваць канал які ўжо існуе ў каталогу. Калі ласка праверце спасылку.';
 
 function isOwner(request: Request) {
   return request.headers.get('oai-authenticated-user-email')?.toLowerCase() === OWNER_EMAIL;
@@ -13,6 +14,10 @@ async function backfillCanonicalKeys(db: Awaited<ReturnType<typeof ensureSubmiss
   for (const item of rows.results ?? []) {
     const key = channelIdentity(item.url);
     if (!key) continue;
+    if (staticChannelIdentities.has(key)) {
+      await db.prepare("UPDATE submissions SET status = 'rejected', reviewed_at = ? WHERE id = ?").bind(new Date().toISOString(), item.id).run();
+      continue;
+    }
     try {
       await db.prepare('UPDATE submissions SET canonical_key = ? WHERE id = ?').bind(key, item.id).run();
     } catch {
@@ -37,14 +42,18 @@ export async function POST(request: Request) {
 
   const db = await ensureSubmissionsTable();
   await backfillCanonicalKeys(db);
+  const canonicalKey = channelIdentity(url);
+  if (canonicalKey && staticChannelIdentities.has(canonicalKey)) {
+    return Response.json({ error: DUPLICATE_MESSAGE }, { status: 409 });
+  }
   const id = crypto.randomUUID();
   const createdAt = new Date().toISOString();
   const submitterEmail = request.headers.get('oai-authenticated-user-email');
   try {
     await db.prepare('INSERT INTO submissions (id, url, reason, status, submitter_email, created_at, canonical_key) VALUES (?, ?, ?, ?, ?, ?, ?)')
-      .bind(id, url, reason, 'pending', submitterEmail, createdAt, channelIdentity(url)).run();
+      .bind(id, url, reason, 'pending', submitterEmail, createdAt, canonicalKey).run();
   } catch {
-    return Response.json({ error: 'Гэты канал на гэтай платформе ўжо ёсць у КОШы або чакае праверкі' }, { status: 409 });
+    return Response.json({ error: DUPLICATE_MESSAGE }, { status: 409 });
   }
 
   return Response.json({ id, status: 'pending' }, { status: 201 });
@@ -96,7 +105,7 @@ export async function PATCH(request: Request) {
       await db.prepare("UPDATE submissions SET status = ?, reviewed_at = ?, title = ?, description = ?, category = ?, platform = ?, avatar_url = ?, enrichment_status = 'complete', canonical_key = ? WHERE id = ?")
         .bind(status, new Date().toISOString(), metadata.title, metadata.description, metadata.category, metadata.platform, metadata.avatarUrl, channelIdentity(submission.url), id).run();
     } catch {
-      return Response.json({ error: 'Гэты канал на гэтай платформе ўжо прыняты' }, { status: 409 });
+      return Response.json({ error: DUPLICATE_MESSAGE }, { status: 409 });
     }
     return Response.json({ id, status, metadata });
   }
@@ -104,7 +113,7 @@ export async function PATCH(request: Request) {
     await db.prepare('UPDATE submissions SET status = ?, reviewed_at = ?, canonical_key = ? WHERE id = ?')
       .bind(status, status === 'pending' ? null : new Date().toISOString(), channelIdentity(submission.url), id).run();
   } catch {
-    return Response.json({ error: 'Гэты канал на гэтай платформе ўжо прыняты' }, { status: 409 });
+    return Response.json({ error: DUPLICATE_MESSAGE }, { status: 409 });
   }
   if (status === 'approved') await db.prepare("UPDATE submissions SET enrichment_status = 'failed' WHERE id = ?").bind(id).run();
   return Response.json({ id, status });
