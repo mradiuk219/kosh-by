@@ -50,6 +50,32 @@ export type Media = {
   addedAt?: string;
 };
 
+const PLATFORM_BY_HOST = [
+  ['YouTube', ['youtube.com', 'youtu.be']],
+  ['Instagram', ['instagram.com']],
+  ['TikTok', ['tiktok.com']],
+  ['Twitch', ['twitch.tv']],
+] as const;
+
+function platformFromUrl(url?: string) {
+  if (!url) return null;
+  try {
+    const host = new URL(url).hostname.toLowerCase().replace(/^www\./, '');
+    return (
+      PLATFORM_BY_HOST.find(([, hosts]) =>
+        hosts.some((name) => host === name || host.endsWith(`.${name}`)),
+      )?.[0] ?? null
+    );
+  } catch {
+    return null;
+  }
+}
+
+function normalizeMedia(item: Media): Media {
+  const platform = platformFromUrl(item.url) ?? item.platform.trim();
+  return platform === item.platform ? item : { ...item, platform };
+}
+
 const bg = {
   culture:
     'https://images.unsplash.com/photo-1564399579883-451a5d44ec08?auto=format&fit=crop&w=900&q=78',
@@ -615,7 +641,11 @@ export async function fetchCatalogData() {
         : item,
     ];
   });
-  return { approved, catalog: mergeMedia(base, approved) };
+  const normalizedApproved = approved.map(normalizeMedia);
+  return {
+    approved: normalizedApproved,
+    catalog: mergeMedia(base.map(normalizeMedia), normalizedApproved),
+  };
 }
 
 function mergeMedia(base: Media[], approved: Media[]) {

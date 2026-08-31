@@ -12,7 +12,7 @@ type SortKey = 'popular' | 'az' | 'za' | 'newest' | 'platform';
 
 export default function CatalogPage() {
   const [query, setQuery] = useState('');
-  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
+  const [selectedPlatform, setSelectedPlatform] = useState('');
   const [category, setCategory] = useState('Усе катэгорыі');
   const [sort, setSort] = useState<SortKey>('popular');
   const [catalogItems, setCatalogItems] = useState<Media[]>(media);
@@ -42,10 +42,15 @@ export default function CatalogPage() {
     const needle = query.trim().toLowerCase();
     const filtered = catalogItems.filter((item) => {
       const matchesPlatform =
-        !selectedPlatforms.length || selectedPlatforms.includes(item.platform);
+        !selectedPlatform || item.platform === selectedPlatform;
       const matchesCategory =
         category === 'Усе катэгорыі' ||
-        parseCategories(item.category).includes(category);
+        parseCategories(item.category).some(
+          (itemCategory) =>
+            itemCategory.localeCompare(category, 'be', {
+              sensitivity: 'base',
+            }) === 0,
+        );
       const matchesQuery =
         !needle ||
         `${item.title} ${item.creator} ${item.category} ${item.platform}`
@@ -72,24 +77,20 @@ export default function CatalogPage() {
         a.title.localeCompare(b.title, 'be')
       );
     });
-  }, [catalogItems, category, query, selectedPlatforms, sort]);
+  }, [catalogItems, category, query, selectedPlatform, sort]);
 
   const togglePlatform = (platform: string) => {
-    setSelectedPlatforms((current) =>
-      current.includes(platform)
-        ? current.filter((item) => item !== platform)
-        : [...current, platform],
-    );
+    setSelectedPlatform((current) => (current === platform ? '' : platform));
   };
 
   const resetFilters = () => {
     setQuery('');
-    setSelectedPlatforms([]);
+    setSelectedPlatform('');
     setCategory('Усе катэгорыі');
   };
 
   const hasFilters = Boolean(
-    query || selectedPlatforms.length || category !== 'Усе катэгорыі',
+    query || selectedPlatform || category !== 'Усе катэгорыі',
   );
 
   return (
@@ -174,10 +175,10 @@ export default function CatalogPage() {
                 {platforms.map((platform) => (
                   <Button
                     key={platform}
-                    aria-pressed={selectedPlatforms.includes(platform)}
+                    aria-pressed={selectedPlatform === platform}
                     variant="outline"
                     onClick={() => togglePlatform(platform)}
-                    className={`justify-start rounded-xl transition ${selectedPlatforms.includes(platform) ? 'border-primary bg-primary font-bold text-white shadow-[0_0_0_3px_rgba(230,72,42,.24),0_8px_24px_rgba(230,72,42,.28)] hover:border-primary hover:bg-primary/90' : 'border-white/10 bg-white/4 text-white/65 hover:bg-white/8'}`}
+                    className={`justify-start rounded-xl transition ${selectedPlatform === platform ? 'border-primary bg-primary font-bold text-white shadow-[0_0_0_3px_rgba(230,72,42,.24),0_8px_24px_rgba(230,72,42,.28)] hover:border-primary hover:bg-primary/90' : 'border-white/10 bg-white/4 text-white/65 hover:bg-white/8'}`}
                   >
                     {platform}
                   </Button>

@@ -2,7 +2,7 @@ export function parseCategories(value?: string | null) {
   return [
     ...new Set(
       (value ?? '')
-        .split('|')
+        .split(/[|,;·]/)
         .map((item) => item.trim())
         .filter(Boolean),
     ),
