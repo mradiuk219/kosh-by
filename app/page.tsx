@@ -649,16 +649,27 @@ export async function fetchCatalogData() {
 }
 
 function mergeMedia(base: Media[], approved: Media[]) {
-  const knownChannels = new Set(
-    base.map((item) => channelIdentity(item.url)).filter(Boolean),
-  );
-  const uniqueApproved = approved.filter((item) => {
-    const key = channelIdentity(item.url);
-    if (!key || knownChannels.has(key)) return false;
-    knownChannels.add(key);
+  const knownChannels = new Set<string>();
+  const knownCards = new Set<string>();
+  const normalized = (value: string) =>
+    value.toLowerCase().normalize('NFKC').replace(/[^\p{L}\p{N}]+/gu, '');
+
+  return [...base, ...approved].filter((item) => {
+    const identity = channelIdentity(item.url);
+    const cardFingerprint = [
+      normalized(item.platform),
+      normalized(item.title),
+      normalized(item.creator),
+    ].join(':');
+    if (
+      (identity && knownChannels.has(identity)) ||
+      knownCards.has(cardFingerprint)
+    )
+      return false;
+    if (identity) knownChannels.add(identity);
+    knownCards.add(cardFingerprint);
     return true;
   });
-  return [...base, ...uniqueApproved];
 }
 
 function PlatformIcon({ platform }: { platform: string }) {
