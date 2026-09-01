@@ -629,10 +629,16 @@ type CatalogOverride = {
   deleted: number;
 };
 
+type ChannelMetric = {
+  canonical_key: string;
+  subscriber_count: number;
+};
+
 export async function fetchCatalogData() {
-  const [approved, overrideResponse] = await Promise.all([
+  const [approved, overrideResponse, metricsResponse] = await Promise.all([
     fetchApprovedMedia(),
     fetch('/api/catalog-overrides', { cache: 'no-store' }),
+    fetch('/api/channel-metrics', { cache: 'no-store' }),
   ]);
   const overrideData = overrideResponse.ok
     ? ((await overrideResponse.json()) as { overrides?: CatalogOverride[] })
@@ -640,6 +646,21 @@ export async function fetchCatalogData() {
   const overrides = new Map(
     (overrideData.overrides ?? []).map((item) => [item.canonical_key, item]),
   );
+  const metricsData = metricsResponse.ok
+    ? ((await metricsResponse.json()) as { metrics?: ChannelMetric[] })
+    : { metrics: [] as ChannelMetric[] };
+  const metrics = new Map(
+    (metricsData.metrics ?? []).map((item) => [
+      item.canonical_key,
+      item.subscriber_count,
+    ]),
+  );
+  const withMetric = (item: Media) => {
+    const key = channelIdentity(item.url);
+    return key && metrics.has(key)
+      ? { ...item, subscriberCount: metrics.get(key) }
+      : item;
+  };
   const base = media.flatMap((item) => {
     const key = channelIdentity(item.url);
     const override = key ? overrides.get(key) : undefined;
@@ -654,10 +675,13 @@ export async function fetchCatalogData() {
         : item,
     ];
   });
-  const normalizedApproved = approved.map(normalizeMedia);
+  const normalizedApproved = approved.map(normalizeMedia).map(withMetric);
   return {
     approved: normalizedApproved,
-    catalog: mergeMedia(base.map(normalizeMedia), normalizedApproved),
+    catalog: mergeMedia(
+      base.map(normalizeMedia).map(withMetric),
+      normalizedApproved,
+    ),
   };
 }
 
@@ -692,6 +716,10 @@ function PlatformIcon({ platform }: { platform: string }) {
   if (platform === 'Spotify') return <Music2 className="size-3.5" />;
   if (platform === 'Падкаст') return <Mic2 className="size-3.5" />;
   return <Play className="size-3.5" />;
+}
+
+function formatSubscriberCount(value: number) {
+  return new Intl.NumberFormat('be-BY', { notation: 'compact', maximumFractionDigits: 1 }).format(value);
 }
 
 export function MediaCard({
@@ -755,9 +783,14 @@ export function MediaCard({
         >
           <PlatformIcon platform={item.platform} /> {item.platform}
         </Badge>
-        <p className="mb-1 text-xs font-semibold text-secondary">
-          {displayCategories(item.category)}
-        </p>
+        <div className="mb-1 flex items-center justify-between gap-2 text-xs font-semibold">
+          <span className="text-secondary">{displayCategories(item.category)}</span>
+          {typeof item.subscriberCount === 'number' && item.subscriberCount > 0 && (
+            <span className="shrink-0 text-white/55">
+              {formatSubscriberCount(item.subscriberCount)} падп.
+            </span>
+          )}
+        </div>
         <h3 className="text-lg font-bold leading-tight text-white">
           {item.title}
         </h3>

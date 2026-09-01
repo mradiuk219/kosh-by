@@ -55,3 +55,9 @@ export const catalogOverridesSchema = `CREATE TABLE IF NOT EXISTS catalog_overri
   deleted INTEGER NOT NULL DEFAULT 0,
   updated_at TEXT NOT NULL
 )`;
+
+export const channelMetricsSchema = `CREATE TABLE IF NOT EXISTS channel_metrics (
+  canonical_key TEXT PRIMARY KEY,
+  subscriber_count INTEGER NOT NULL DEFAULT 0,
+  updated_at TEXT NOT NULL
+)`;

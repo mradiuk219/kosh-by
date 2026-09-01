@@ -1,5 +1,6 @@
 import { ensureSubmissionsTable, type Submission } from '@/lib/submissions';
 import { serializeCategories } from '@/lib/categories';
+import { ensureChannelMetricsTable, type ChannelMetric } from '@/lib/channel-metrics';
 import {
   ensureCatalogOverridesTable,
   type CatalogOverride,
@@ -23,9 +24,14 @@ export async function GET(request: Request) {
   const overrides = await db
     .prepare('SELECT * FROM catalog_overrides')
     .all<CatalogOverride>();
+  const metricsDb = await ensureChannelMetricsTable();
+  const metrics = await metricsDb
+    .prepare('SELECT canonical_key, subscriber_count, updated_at FROM channel_metrics')
+    .all<ChannelMetric>();
   return Response.json({
     channels: result.results ?? [],
     overrides: overrides.results ?? [],
+    metrics: metrics.results ?? [],
   });
 }
 
@@ -36,6 +42,7 @@ export async function PATCH(request: Request) {
     id?: unknown;
     description?: unknown;
     categories?: unknown;
+    subscriberCount?: unknown;
   } | null;
   const id = typeof body?.id === 'string' ? body.id : '';
   const description =
@@ -44,15 +51,18 @@ export async function PATCH(request: Request) {
     ? body.categories.filter((item): item is string => typeof item === 'string')
     : [];
   const category = serializeCategories(categoryValues);
+  const subscriberCount = Number(body?.subscriberCount);
   if (
     !id ||
     !category ||
     categoryValues.length > 3 ||
     description.length > 1000 ||
-    category.length > 180
+    category.length > 180 ||
+    !Number.isSafeInteger(subscriberCount) ||
+    subscriberCount < 0
   )
     return Response.json(
-      { error: 'Выберыце ад адной да трох катэгорый' },
+      { error: 'Праверце катэгорыі і колькасць падпісантаў' },
       { status: 400 },
     );
   if (id.startsWith('static:')) {
@@ -67,13 +77,17 @@ export async function PATCH(request: Request) {
       )
       .bind(canonicalKey, description, category, new Date().toISOString())
       .run();
+    const metricsDb = await ensureChannelMetricsTable();
+    await metricsDb.prepare(`INSERT INTO channel_metrics (canonical_key, subscriber_count, updated_at) VALUES (?, ?, ?)
+      ON CONFLICT(canonical_key) DO UPDATE SET subscriber_count = excluded.subscriber_count, updated_at = excluded.updated_at`)
+      .bind(canonicalKey, subscriberCount, new Date().toISOString()).run();
     return Response.json({ id, description, categories: category.split('|') });
   }
   const db = await ensureSubmissionsTable();
   const current = await db
-    .prepare("SELECT id FROM submissions WHERE id = ? AND status = 'approved'")
+    .prepare("SELECT id, canonical_key FROM submissions WHERE id = ? AND status = 'approved'")
     .bind(id)
-    .all<{ id: string }>();
+    .all<{ id: string; canonical_key: string | null }>();
   if (!current.results?.length)
     return Response.json({ error: 'Канал не знойдзены' }, { status: 404 });
   await db
@@ -82,6 +96,13 @@ export async function PATCH(request: Request) {
     )
     .bind(description, category, id)
     .run();
+  const canonicalKey = current.results?.[0]?.canonical_key;
+  if (canonicalKey) {
+    const metricsDb = await ensureChannelMetricsTable();
+    await metricsDb.prepare(`INSERT INTO channel_metrics (canonical_key, subscriber_count, updated_at) VALUES (?, ?, ?)
+      ON CONFLICT(canonical_key) DO UPDATE SET subscriber_count = excluded.subscriber_count, updated_at = excluded.updated_at`)
+      .bind(canonicalKey, subscriberCount, new Date().toISOString()).run();
+  }
   return Response.json({ id, description, categories: category.split('|') });
 }
 

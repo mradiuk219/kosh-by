@@ -40,6 +40,7 @@ type Channel = {
   category: string | null;
   platform: string | null;
   avatar_url: string | null;
+  subscriber_count: number;
 };
 type CatalogOverride = {
   canonical_key: string;
@@ -47,7 +48,7 @@ type CatalogOverride = {
   category: string;
   deleted: number;
 };
-type Draft = { description: string; categories: string[] };
+type Draft = { description: string; categories: string[]; subscriberCount: number };
 const categories = [
   'Агучка',
   'Блог',
@@ -88,9 +89,13 @@ export default function AdminChannelsPage() {
     const data = (await response.json()) as {
       channels?: Channel[];
       overrides?: CatalogOverride[];
+      metrics?: { canonical_key: string; subscriber_count: number }[];
     };
     const overrides = new Map(
       (data.overrides ?? []).map((item) => [item.canonical_key, item]),
+    );
+    const metrics = new Map(
+      (data.metrics ?? []).map((item) => [item.canonical_key, item.subscriber_count]),
     );
     const staticChannels = media.flatMap((item) => {
       const key = channelIdentity(item.url);
@@ -106,10 +111,15 @@ export default function AdminChannelsPage() {
           category: override?.category ?? item.category,
           platform: item.platform,
           avatar_url: item.image ?? null,
+          subscriber_count: metrics.get(key) ?? 0,
         } satisfies Channel,
       ];
     });
-    const next = [...staticChannels, ...(data.channels ?? [])].sort((a, b) =>
+    const databaseChannels = (data.channels ?? []).map((item) => ({
+      ...item,
+      subscriber_count: metrics.get(channelIdentity(item.url) ?? '') ?? 0,
+    }));
+    const next = [...staticChannels, ...databaseChannels].sort((a, b) =>
       (a.title ?? a.url).localeCompare(b.title ?? b.url, 'be'),
     );
     setChannels(next);
@@ -120,6 +130,7 @@ export default function AdminChannelsPage() {
           {
             description: item.description ?? '',
             categories: [...parseCategories(item.category), '', ''].slice(0, 3),
+            subscriberCount: item.subscriber_count,
           },
         ]),
       ),
@@ -140,7 +151,8 @@ export default function AdminChannelsPage() {
               drafts[item.id] &&
               (drafts[item.id].description !== (item.description ?? '') ||
                 drafts[item.id].categories.filter(Boolean).join('|') !==
-                  parseCategories(item.category).join('|')),
+                  parseCategories(item.category).join('|') ||
+                drafts[item.id].subscriberCount !== item.subscriber_count),
           )
           .map((item) => item.id),
       ),
@@ -172,6 +184,7 @@ export default function AdminChannelsPage() {
                 ...item,
                 description: draft.description,
                 category: draft.categories.filter(Boolean).join('|'),
+                subscriber_count: draft.subscriberCount,
               }
             : item,
         ),
@@ -267,7 +280,7 @@ export default function AdminChannelsPage() {
           </div>
         ) : (
           <div className="overflow-hidden rounded-2xl border border-white/10 bg-black/10">
-            <Table className="min-w-[1220px]">
+            <Table className="min-w-[1360px]">
               <TableHeader className="bg-white/5">
                 <TableRow className="border-white/10 hover:bg-white/5">
                   <TableHead className="w-20 px-4 text-white/45">
@@ -282,6 +295,9 @@ export default function AdminChannelsPage() {
                   </TableHead>
                   <TableHead className="w-28 text-white/45">
                     Платформа
+                  </TableHead>
+                  <TableHead className="w-36 text-white/45">
+                    Падпісанты
                   </TableHead>
                   <TableHead className="w-44 px-4 text-right text-white/45">
                     Дзеянні
@@ -386,6 +402,25 @@ export default function AdminChannelsPage() {
                     </TableCell>
                     <TableCell className="py-4 align-top text-white/50">
                       {item.platform ?? '—'}
+                    </TableCell>
+                    <TableCell className="py-4 align-top">
+                      <Input
+                        type="number"
+                        min={0}
+                        step={1}
+                        aria-label={`Колькасць падпісантаў ${item.title ?? ''}`}
+                        value={drafts[item.id]?.subscriberCount ?? 0}
+                        onChange={(event) =>
+                          setDrafts((current) => ({
+                            ...current,
+                            [item.id]: {
+                              ...current[item.id],
+                              subscriberCount: Math.max(0, Number(event.target.value) || 0),
+                            },
+                          }))
+                        }
+                        className="h-10 border-white/10 bg-white/4"
+                      />
                     </TableCell>
                     <TableCell className="px-4 py-4 align-top">
                       <div className="flex justify-end gap-2">
