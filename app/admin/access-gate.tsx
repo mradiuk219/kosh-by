@@ -33,6 +33,7 @@ export function AdminAccessGate({
         {signedIn ? (
           <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
             <Button
+              nativeButton={false}
               render={
                 <a
                   href={`/signout-with-chatgpt?return_to=${encodeURIComponent(returnTo)}`}
@@ -45,6 +46,7 @@ export function AdminAccessGate({
               Выйсці і ўвайсці іншым акаўнтам
             </Button>
             <Button
+              nativeButton={false}
               render={<a href="/" />}
               variant="ghost"
               className="rounded-full text-white/60"
@@ -54,6 +56,7 @@ export function AdminAccessGate({
           </div>
         ) : (
           <Button
+            nativeButton={false}
             render={
               <a href={chatGPTSignInPath(returnTo)} target="_top" />
             }
