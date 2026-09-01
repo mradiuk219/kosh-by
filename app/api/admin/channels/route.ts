@@ -1,6 +1,6 @@
 import { ensureSubmissionsTable, type Submission } from '@/lib/submissions';
 import { serializeCategories } from '@/lib/categories';
-import { ensureChannelMetricsTable, type ChannelMetric } from '@/lib/channel-metrics';
+import { ensureChannelMetricsTable, refreshYoutubeMetrics, type ChannelMetric } from '@/lib/channel-metrics';
 import {
   ensureCatalogOverridesTable,
   type CatalogOverride,
@@ -15,6 +15,7 @@ export async function GET(request: Request) {
   if (!isOwner(request))
     return Response.json({ error: 'Няма доступу' }, { status: 403 });
   const db = await ensureSubmissionsTable();
+  await refreshYoutubeMetrics().catch(() => {});
   const result = await db
     .prepare(
       "SELECT id, url, title, description, category, platform, avatar_url, created_at, reviewed_at FROM submissions WHERE status = 'approved' ORDER BY lower(COALESCE(title, url)) ASC",

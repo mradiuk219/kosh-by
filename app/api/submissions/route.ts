@@ -1,6 +1,7 @@
 import { ensureSubmissionsTable, type Submission } from '@/lib/submissions';
 import { enrichChannel } from '@/lib/enrich-channel';
 import { channelIdentity, staticChannelIdentities } from '@/lib/channel-identity';
+import { allowSubmission } from '@/lib/request-rate-limit';
 
 const OWNER_EMAIL = 'radziuk219@gmail.com';
 const DUPLICATE_MESSAGE = 'Вы спрабуеце прапанаваць канал які ўжо існуе ў каталогу. Калі ласка праверце спасылку.';
@@ -27,6 +28,16 @@ async function backfillCanonicalKeys(db: Awaited<ReturnType<typeof ensureSubmiss
 }
 
 export async function POST(request: Request) {
+  const contentLength = Number(request.headers.get('content-length') ?? '0');
+  if (contentLength > 16_384) {
+    return Response.json({ error: 'Запыт занадта вялікі' }, { status: 413 });
+  }
+  if (!(await allowSubmission(request))) {
+    return Response.json(
+      { error: 'Занадта шмат спроб. Калі ласка, паспрабуйце пазней.' },
+      { status: 429, headers: { 'retry-after': '3600' } },
+    );
+  }
   const body = await request.json().catch(() => null) as { url?: unknown; reason?: unknown } | null;
   const url = typeof body?.url === 'string' ? body.url.trim() : '';
   const reason = typeof body?.reason === 'string' ? body.reason.trim() : '';
@@ -64,16 +75,6 @@ export async function GET(request: Request) {
   if (view === 'approved') {
     const db = await ensureSubmissionsTable();
     await backfillCanonicalKeys(db);
-    const missing = await db.prepare("SELECT * FROM submissions WHERE status = 'approved' AND (enrichment_status IS NULL OR enrichment_status = 'pending') ORDER BY reviewed_at DESC LIMIT 4").all<Submission>();
-    await Promise.all((missing.results ?? []).map(async (item) => {
-      try {
-        const metadata = await enrichChannel(item.url, item.reason);
-        await db.prepare("UPDATE submissions SET title = ?, description = ?, category = ?, platform = ?, avatar_url = ?, enrichment_status = 'complete' WHERE id = ?")
-          .bind(metadata.title, metadata.description, metadata.category, metadata.platform, metadata.avatarUrl, item.id).run();
-      } catch {
-        await db.prepare("UPDATE submissions SET enrichment_status = 'failed' WHERE id = ?").bind(item.id).run();
-      }
-    }));
     const result = await db.prepare(`SELECT s.id, s.url, s.reason, s.status, s.created_at, s.reviewed_at,
       s.title, s.description, s.category, s.platform, s.avatar_url, s.enrichment_status,
       COALESCE(yc.subscriber_count, CASE WHEN s.canonical_key = 'youtube:belsat_news' THEN 442000 END) AS subscriber_count

@@ -61,3 +61,9 @@ export const channelMetricsSchema = `CREATE TABLE IF NOT EXISTS channel_metrics 
   subscriber_count INTEGER NOT NULL DEFAULT 0,
   updated_at TEXT NOT NULL
 )`;
+
+export const requestLimitsSchema = `CREATE TABLE IF NOT EXISTS request_limits (
+  bucket_key TEXT PRIMARY KEY,
+  request_count INTEGER NOT NULL,
+  expires_at TEXT NOT NULL
+)`;
