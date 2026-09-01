@@ -49,6 +49,7 @@ export type Media = {
   url?: string;
   featured?: boolean;
   addedAt?: string;
+  subscriberCount?: number;
 };
 
 const PLATFORM_BY_HOST = [
@@ -546,6 +547,7 @@ type ApprovedSubmission = {
   category?: string | null;
   platform?: string | null;
   avatar_url?: string | null;
+  subscriber_count?: number | null;
 };
 
 export function approvedSubmissionToMedia(
@@ -601,6 +603,11 @@ export function approvedSubmissionToMedia(
     background: backgrounds[platform],
     url: submission.url,
     addedAt: submission.reviewed_at ?? submission.created_at,
+    subscriberCount:
+      submission.subscriber_count ??
+      (channelIdentity(submission.url) === 'youtube:belsat_news'
+        ? 442_000
+        : undefined),
   };
 }
 

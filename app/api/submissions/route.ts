@@ -74,7 +74,13 @@ export async function GET(request: Request) {
         await db.prepare("UPDATE submissions SET enrichment_status = 'failed' WHERE id = ?").bind(item.id).run();
       }
     }));
-    const result = await db.prepare("SELECT id, url, reason, status, created_at, reviewed_at, title, description, category, platform, avatar_url, enrichment_status FROM submissions WHERE status = 'approved' ORDER BY reviewed_at DESC, created_at DESC").all<Omit<Submission, 'submitter_email'>>();
+    const result = await db.prepare(`SELECT s.id, s.url, s.reason, s.status, s.created_at, s.reviewed_at,
+      s.title, s.description, s.category, s.platform, s.avatar_url, s.enrichment_status,
+      COALESCE(yc.subscriber_count, CASE WHEN s.canonical_key = 'youtube:belsat_news' THEN 442000 END) AS subscriber_count
+      FROM submissions s
+      LEFT JOIN youtube_candidates yc ON yc.canonical_key = s.canonical_key
+      WHERE s.status = 'approved'
+      ORDER BY s.reviewed_at DESC, s.created_at DESC`).all<Omit<Submission, 'submitter_email'> & { subscriber_count: number | null }>();
     return Response.json({ submissions: result.results ?? [] });
   }
 

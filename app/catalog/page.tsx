@@ -73,6 +73,7 @@ export default function CatalogPage() {
           a.title.localeCompare(b.title, 'be')
         );
       return (
+        (b.subscriberCount ?? 0) - (a.subscriberCount ?? 0) ||
         Number(Boolean(b.featured)) - Number(Boolean(a.featured)) ||
         a.title.localeCompare(b.title, 'be')
       );
