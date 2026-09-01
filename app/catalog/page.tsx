@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { parseCategories } from '@/lib/categories';
 import { fetchCatalogData, MediaCard, media, type Media } from '../page';
 
-const platforms = ['YouTube', 'Instagram', 'TikTok', 'Twitch'];
+const platforms = ['YouTube', 'Instagram', 'TikTok', 'Twitch', 'Spotify'];
 type SortKey = 'popular' | 'az' | 'za' | 'newest' | 'platform';
 
 export default function CatalogPage() {

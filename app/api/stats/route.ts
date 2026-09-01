@@ -9,7 +9,7 @@ type StatsPayload = {
   updatedAt: string;
 };
 
-const baseline = { YouTube: 12, Twitch: 13, Instagram: 12, TikTok: 12 };
+const baseline = { YouTube: 12, Twitch: 13, Instagram: 12, TikTok: 12, Spotify: 0 };
 const topChannel = {
   name: 'БЕЛСАТ NEWS',
   url: 'https://www.youtube.com/@belsat_news',
@@ -83,6 +83,7 @@ async function refreshStats(
     twitch: 'Twitch',
     instagram: 'Instagram',
     tiktok: 'TikTok',
+    spotify: 'Spotify',
   };
   for (const item of deletedStatic.results ?? []) {
     const platform = platformNames[item.canonical_key.split(':')[0]];

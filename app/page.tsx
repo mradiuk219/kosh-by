@@ -10,6 +10,7 @@ import {
   Clapperboard,
   Menu,
   Mic2,
+  Music2,
   Play,
   Radio,
   Search,
@@ -55,6 +56,7 @@ const PLATFORM_BY_HOST = [
   ['Instagram', ['instagram.com']],
   ['TikTok', ['tiktok.com']],
   ['Twitch', ['twitch.tv']],
+  ['Spotify', ['open.spotify.com']],
 ] as const;
 
 function platformFromUrl(url?: string) {
@@ -461,7 +463,7 @@ const socialMedia: Media[] = [
 export const media = [...youtubeMedia, ...socialMedia].map((item) =>
   item.platform === 'Instagram' ? { ...item, addedAt: '2026-08-29' } : item,
 );
-const filters = ['Усё', 'YouTube', 'Instagram', 'TikTok', 'Twitch'];
+const filters = ['Усё', 'YouTube', 'Instagram', 'TikTok', 'Twitch', 'Spotify'];
 const platformCounts = Object.fromEntries(
   filters
     .slice(1)
@@ -488,6 +490,7 @@ const initialHeroStats: HeroStat[] = [
   { value: platformCounts.Twitch, label: 'Аўтараў з Twitch' },
   { value: platformCounts.Instagram, label: 'Аўтараў з Instagram' },
   { value: platformCounts.TikTok, label: 'Аўтараў з TikTok' },
+  { value: platformCounts.Spotify, label: 'Аўтараў са Spotify' },
 ];
 
 function shuffleMedia(items: Media[]) {
@@ -568,6 +571,8 @@ export function approvedSubmissionToMedia(
           ? 'TikTok'
           : host.includes('twitch')
             ? 'Twitch'
+            : host.includes('spotify')
+              ? 'Spotify'
             : 'Сайт');
   const lowerReason = submission.reason.toLowerCase();
   const category =
@@ -582,6 +587,7 @@ export function approvedSubmissionToMedia(
     Instagram: bg.travel,
     TikTok: bg.games,
     Twitch: bg.talk,
+    Spotify: bg.talk,
     Сайт: bg.culture,
   };
 
@@ -676,6 +682,7 @@ function PlatformIcon({ platform }: { platform: string }) {
   if (platform === 'YouTube') return <Clapperboard className="size-3.5" />;
   if (platform === 'Instagram') return <Camera className="size-3.5" />;
   if (platform === 'Twitch') return <Radio className="size-3.5" />;
+  if (platform === 'Spotify') return <Music2 className="size-3.5" />;
   if (platform === 'Падкаст') return <Mic2 className="size-3.5" />;
   return <Play className="size-3.5" />;
 }
@@ -694,7 +701,9 @@ export function MediaCard({
         ? 'border-fuchsia-400/70 bg-gradient-to-r from-fuchsia-600 via-pink-500 to-orange-400'
         : item.platform === 'TikTok'
           ? 'border-cyan-300/70 bg-black shadow-cyan-500/20'
-          : 'border-violet-300/70 bg-[#9146ff]';
+          : item.platform === 'Spotify'
+            ? 'border-[#1ed760] bg-[#1db954] text-black'
+            : 'border-violet-300/70 bg-[#9146ff]';
   const logoClass =
     item.platform === 'Instagram'
       ? 'bg-gradient-to-br from-violet-600 via-pink-500 to-orange-400'
@@ -702,6 +711,8 @@ export function MediaCard({
         ? 'bg-black'
         : item.platform === 'Twitch'
           ? 'bg-[#9146ff]'
+          : item.platform === 'Spotify'
+            ? 'bg-[#1db954]'
           : 'bg-white';
   const card = (
     <article
@@ -755,7 +766,7 @@ export function MediaCard({
       href={item.url}
       target="_blank"
       rel="noreferrer"
-      aria-label={`Адкрыць канал ${item.title} на YouTube`}
+      aria-label={`Адкрыць канал ${item.title} на ${item.platform}`}
     >
       {card}
     </a>
@@ -993,6 +1004,7 @@ export default function Home() {
             label: 'Аўтараў з Instagram',
           },
           { value: stats.platforms.TikTok ?? 0, label: 'Аўтараў з TikTok' },
+          { value: stats.platforms.Spotify ?? 0, label: 'Аўтараў са Spotify' },
         ]);
       })
       .catch(() => {});

@@ -6,7 +6,7 @@ export type ChannelMetadata = {
   avatarUrl: string | null;
 };
 
-const platformForHost = (host: string) => host.includes('youtube.com') || host === 'youtu.be' ? 'YouTube' : host.includes('instagram.com') ? 'Instagram' : host.includes('tiktok.com') ? 'TikTok' : host.includes('twitch.tv') ? 'Twitch' : 'Сайт';
+const platformForHost = (host: string) => host.includes('youtube.com') || host === 'youtu.be' ? 'YouTube' : host.includes('instagram.com') ? 'Instagram' : host.includes('tiktok.com') ? 'TikTok' : host.includes('twitch.tv') ? 'Twitch' : host.includes('open.spotify.com') ? 'Spotify' : 'Сайт';
 
 function fallbackTitle(url: URL) {
   const handle = decodeURIComponent(url.pathname.split('/').filter(Boolean).at(-1) ?? url.hostname)
@@ -59,7 +59,7 @@ function chooseCategory(text: string) {
 export async function enrichChannel(sourceUrl: string, reason: string): Promise<ChannelMetadata> {
   const url = new URL(sourceUrl);
   const platform = platformForHost(url.hostname.toLowerCase());
-  const allowed = ['youtube.com', 'youtu.be', 'instagram.com', 'tiktok.com', 'twitch.tv'];
+  const allowed = ['youtube.com', 'youtu.be', 'instagram.com', 'tiktok.com', 'twitch.tv', 'open.spotify.com'];
   if (!allowed.some((host) => url.hostname === host || url.hostname.endsWith(`.${host}`))) {
     return { title: fallbackTitle(url), description: reason, category: chooseCategory(reason), platform, avatarUrl: null };
   }
@@ -72,7 +72,7 @@ export async function enrichChannel(sourceUrl: string, reason: string): Promise<
   if (!response.ok) throw new Error(`Metadata request failed: ${response.status}`);
   const html = await response.text();
   const rawTitle = readMeta(html, ['og:title', 'twitter:title']);
-  const title = rawTitle.replace(/\s*[|–-]\s*(YouTube|Instagram|TikTok|Twitch).*$/i, '').trim() || fallbackTitle(url);
+  const title = rawTitle.replace(/\s*[|–-]\s*(YouTube|Instagram|TikTok|Twitch|Spotify).*$/i, '').trim() || fallbackTitle(url);
   const description = readMeta(html, ['og:description', 'twitter:description', 'description']).slice(0, 500) || reason;
   const avatarUrl = readMeta(html, ['og:image', 'twitter:image']) || null;
   return { title, description, category: chooseCategory(`${title} ${description} ${reason}`), platform, avatarUrl };

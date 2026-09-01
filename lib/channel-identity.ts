@@ -3,6 +3,7 @@ const platformHosts = [
   ['instagram', ['instagram.com']],
   ['tiktok', ['tiktok.com']],
   ['twitch', ['twitch.tv']],
+  ['spotify', ['open.spotify.com']],
 ] as const;
 
 export const staticChannelIdentities = new Set([
