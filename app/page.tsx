@@ -1127,11 +1127,11 @@ export default function Home() {
               Відэа, падкасты, аўтары і гісторыі па-беларуску — сабраныя ў адным
               месцы, каб цікавае не гублялася ў стужцы.
             </p>
-            <div className="mt-7 grid max-w-3xl grid-cols-2 gap-x-2 gap-y-3 sm:grid-cols-3">
-              {heroStats.map((stat) => (
+            <div className="mt-7 grid max-w-3xl grid-cols-2 gap-x-2 gap-y-3 sm:grid-cols-8">
+              {heroStats.map((stat, index) => (
                 <div
                   key={stat.label}
-                  className="relative flex min-h-40 flex-col items-center justify-center px-2 text-center"
+                  className={`relative flex min-h-40 flex-col items-center justify-center px-2 text-center sm:col-span-2 ${index === 4 ? 'sm:col-start-2' : ''}`}
                 >
                   <img
                     src="/honor-seal-ornament.png"
