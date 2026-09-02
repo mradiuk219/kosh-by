@@ -57,7 +57,7 @@ export default function AdminPage() {
 
   const load = useCallback(async () => {
     const [response, discoveryResponse] = await Promise.all([
-      fetch('/api/submissions', { cache: 'no-store' }),
+      fetch('/api/admin/submissions', { cache: 'no-store' }),
       fetch('/api/youtube-discovery', { cache: 'no-store' }),
     ]);
     if (response.status === 403) {
@@ -86,7 +86,7 @@ export default function AdminPage() {
 
   const updateStatus = async (id: string, status: Submission['status']) => {
     setActionError('');
-    const response = await fetch('/api/submissions', {
+    const response = await fetch('/api/admin/submissions', {
       method: 'PATCH',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ id, status }),
