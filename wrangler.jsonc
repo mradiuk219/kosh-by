@@ -16,7 +16,7 @@
     }
   ],
   "build": {
-    "command": "npm run build"
+    "command": "node node_modules/vinext/dist/cli.js build"
   },
   "rules": [
     {
