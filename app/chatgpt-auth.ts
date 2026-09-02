@@ -8,8 +8,10 @@ export type ChatGPTUser = {
 
 export async function getChatGPTUser(): Promise<ChatGPTUser | null> {
   const requestHeaders = await headers();
-  const id = requestHeaders.get('oai-authenticated-user-id');
-  const email = requestHeaders.get('oai-authenticated-user-email');
+  const email =
+    requestHeaders.get('cf-access-authenticated-user-email') ??
+    requestHeaders.get('oai-authenticated-user-email');
+  const id = requestHeaders.get('oai-authenticated-user-id') ?? email;
   return id || email ? { id, email } : null;
 }
 
