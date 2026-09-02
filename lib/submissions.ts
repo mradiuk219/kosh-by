@@ -15,7 +15,6 @@ export type Submission = {
   url: string;
   reason: string;
   status: 'pending' | 'approved' | 'rejected';
-  submitter_email: string | null;
   created_at: string;
   reviewed_at: string | null;
   title: string | null;
@@ -36,7 +35,6 @@ export async function ensureSubmissionsTable() {
     url TEXT NOT NULL,
     reason TEXT NOT NULL,
     status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
-    submitter_email TEXT,
     created_at TEXT NOT NULL,
     reviewed_at TEXT,
     title TEXT,
