@@ -894,10 +894,7 @@ function SubmitDialog() {
       const response = await fetch('/api/submissions', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          url: form.get('url'),
-          reason: form.get('reason'),
-        }),
+        body: JSON.stringify({ url: form.get('url') }),
       });
       if (!response.ok) {
         const data = (await response.json().catch(() => null)) as {
@@ -964,16 +961,6 @@ function SubmitDialog() {
                   type="url"
                   required
                   placeholder="https://…"
-                  className="mt-2 h-11 border-white/10 bg-white/5"
-                />
-              </label>
-              <label className="block text-sm font-medium">
-                Чаму варта дадаць?
-                <Input
-                  name="reason"
-                  required
-                  maxLength={500}
-                  placeholder="Коратка пра кантэнт"
                   className="mt-2 h-11 border-white/10 bg-white/5"
                 />
               </label>
