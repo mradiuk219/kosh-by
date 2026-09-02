@@ -2,7 +2,10 @@ import { ensureSubmissionsTable } from '@/lib/submissions';
 import { ensureYoutubeDiscoveryTables, hasYoutubeKey, hideKnownYoutubeCandidates, runYoutubeDiscovery, type DiscoveryRun, type YoutubeCandidate } from '@/lib/youtube-discovery';
 
 const OWNER_EMAIL = 'radziuk219@gmail.com';
-const isOwner = (request: Request) => request.headers.get('oai-authenticated-user-email')?.toLowerCase() === OWNER_EMAIL;
+const isOwner = (request: Request) => {
+  const email = request.headers.get('cf-access-authenticated-user-email') ?? request.headers.get('oai-authenticated-user-email');
+  return email?.toLowerCase() === OWNER_EMAIL;
+};
 
 export async function GET(request: Request) {
   if (!isOwner(request)) return Response.json({ error: 'Няма доступу' }, { status: 403 });
@@ -30,9 +33,9 @@ export async function POST(request: Request) {
   if (status === 'approved') {
     await ensureSubmissionsTable();
     try {
-      await db.prepare(`INSERT INTO submissions (id, url, reason, status, submitter_email, created_at, reviewed_at, title, description, category, platform, avatar_url, enrichment_status, canonical_key)
-        VALUES (?, ?, ?, 'approved', ?, ?, ?, ?, ?, ?, 'YouTube', ?, 'complete', ?)`)
-        .bind(crypto.randomUUID(), candidate.url, 'Знойдзена аўтаматычным пошукам YouTube', OWNER_EMAIL, candidate.discovered_at, new Date().toISOString(), candidate.title, candidate.description, candidate.category, candidate.avatar_url, candidate.canonical_key).run();
+      await db.prepare(`INSERT INTO submissions (id, url, reason, status, created_at, reviewed_at, title, description, category, platform, avatar_url, enrichment_status, canonical_key)
+        VALUES (?, ?, ?, 'approved', ?, ?, ?, ?, ?, 'YouTube', ?, 'complete', ?)`)
+        .bind(crypto.randomUUID(), candidate.url, '', candidate.discovered_at, new Date().toISOString(), candidate.title, candidate.description, candidate.category, candidate.avatar_url, candidate.canonical_key).run();
     } catch { return Response.json({ error: 'Гэты канал ужо ёсць у каталогу або ў чарзе.' }, { status: 409 }); }
   }
   await db.prepare('UPDATE youtube_candidates SET status = ?, reviewed_at = ? WHERE id = ?').bind(status, new Date().toISOString(), id).run();
