@@ -390,12 +390,8 @@ export default function AdminPage() {
                       {item.url}
                       <ExternalLink className="size-4 shrink-0" />
                     </a>
-                    <p className="mt-3 text-sm leading-relaxed text-white/60">
-                      {item.reason}
-                    </p>
                     <p className="mt-3 text-xs text-white/30">
                       {new Date(item.created_at).toLocaleString('be-BY')}
-                      {item.submitter_email ? ` · ${item.submitter_email}` : ''}
                     </p>
                   </div>
                   {item.status === 'pending' && (
