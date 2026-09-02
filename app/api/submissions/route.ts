@@ -38,9 +38,9 @@ export async function POST(request: Request) {
       { status: 429, headers: { 'retry-after': '3600' } },
     );
   }
-  const body = await request.json().catch(() => null) as { url?: unknown; reason?: unknown } | null;
+  const body = await request.json().catch(() => null) as { url?: unknown } | null;
   const url = typeof body?.url === 'string' ? body.url.trim() : '';
-  const reason = typeof body?.reason === 'string' ? body.reason.trim() : '';
+  const reason = '';
 
   try {
     const parsed = new URL(url);
@@ -48,8 +48,6 @@ export async function POST(request: Request) {
   } catch {
     return Response.json({ error: 'Няправільная спасылка' }, { status: 400 });
   }
-
-  if (!reason || reason.length > 500) return Response.json({ error: 'Дадай кароткае апісанне' }, { status: 400 });
 
   const db = await ensureSubmissionsTable();
   await backfillCanonicalKeys(db);
@@ -59,10 +57,9 @@ export async function POST(request: Request) {
   }
   const id = crypto.randomUUID();
   const createdAt = new Date().toISOString();
-  const submitterEmail = request.headers.get('oai-authenticated-user-email');
   try {
-    await db.prepare('INSERT INTO submissions (id, url, reason, status, submitter_email, created_at, canonical_key) VALUES (?, ?, ?, ?, ?, ?, ?)')
-      .bind(id, url, reason, 'pending', submitterEmail, createdAt, canonicalKey).run();
+    await db.prepare('INSERT INTO submissions (id, url, reason, status, created_at, canonical_key) VALUES (?, ?, ?, ?, ?, ?)')
+      .bind(id, url, reason, 'pending', createdAt, canonicalKey).run();
   } catch {
     return Response.json({ error: DUPLICATE_MESSAGE }, { status: 409 });
   }
@@ -88,7 +85,9 @@ export async function GET(request: Request) {
   if (!isOwner(request)) return Response.json({ error: 'Няма доступу' }, { status: 403 });
   const db = await ensureSubmissionsTable();
   await backfillCanonicalKeys(db);
-  const result = await db.prepare("SELECT * FROM submissions ORDER BY CASE status WHEN 'pending' THEN 0 ELSE 1 END, created_at DESC").all<Submission>();
+  const result = await db.prepare(`SELECT id, url, reason, status, created_at, reviewed_at, title, description,
+      category, platform, avatar_url, enrichment_status, canonical_key
+      FROM submissions ORDER BY CASE status WHEN 'pending' THEN 0 ELSE 1 END, created_at DESC`).all<Submission>();
   return Response.json({ submissions: result.results ?? [] });
 }
 
