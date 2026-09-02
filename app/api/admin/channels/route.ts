@@ -7,9 +7,12 @@ import {
 } from '@/lib/catalog-overrides';
 
 const OWNER_EMAIL = 'radziuk219@gmail.com';
-const isOwner = (request: Request) =>
-  request.headers.get('oai-authenticated-user-email')?.toLowerCase() ===
-  OWNER_EMAIL;
+const isOwner = (request: Request) => {
+  const email =
+    request.headers.get('cf-access-authenticated-user-email') ??
+    request.headers.get('oai-authenticated-user-email');
+  return email?.toLowerCase() === OWNER_EMAIL;
+};
 
 export async function GET(request: Request) {
   if (!isOwner(request))
