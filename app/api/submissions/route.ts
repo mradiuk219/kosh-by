@@ -7,7 +7,10 @@ const OWNER_EMAIL = 'radziuk219@gmail.com';
 const DUPLICATE_MESSAGE = 'Вы спрабуеце прапанаваць канал які ўжо існуе ў каталогу. Калі ласка праверце спасылку.';
 
 function isOwner(request: Request) {
-  return request.headers.get('oai-authenticated-user-email')?.toLowerCase() === OWNER_EMAIL;
+  const email =
+    request.headers.get('cf-access-authenticated-user-email') ??
+    request.headers.get('oai-authenticated-user-email');
+  return email?.toLowerCase() === OWNER_EMAIL;
 }
 
 async function backfillCanonicalKeys(db: Awaited<ReturnType<typeof ensureSubmissionsTable>>) {
