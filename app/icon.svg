@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="КОШ">
+  <rect width="64" height="64" rx="14" fill="#151B24"/>
+  <path fill="#F8FAFC" d="M11 13h8v29h7V13h8v29h7V13h8v37H11V13Z"/>
+  <circle cx="52" cy="49" r="7" fill="#EF5A38"/>
+</svg>
