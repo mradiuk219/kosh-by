@@ -4,27 +4,35 @@
   "main": "dist/server/index.js",
   "compatibility_date": "2026-05-15",
   "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "routes": [
+    {
+      "pattern": "belaruski-kosh.org",
+      "custom_domain": true,
+    },
+  ],
   "no_bundle": true,
   "assets": {
-    "directory": "dist/client"
+    "directory": "dist/client",
   },
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "belaruski-kosh-staging",
-      "database_id": "980e4ce8-5d23-4015-9675-5ea4ba134840"
-    }
+      "database_name": "belaruski-kosh-production",
+      "database_id": "4c2e5540-bf48-45c2-89ad-648b211bbbf2",
+      "migrations_dir": "drizzle",
+    },
   ],
   "build": {
-    "command": "node node_modules/vinext/dist/cli.js build"
+    "command": "node node_modules/vinext/dist/cli.js build",
   },
   "rules": [
     {
       "type": "ESModule",
-      "globs": ["**/*.js", "**/*.mjs"]
-    }
+      "globs": ["**/*.js", "**/*.mjs"],
+    },
   ],
   "observability": {
-    "enabled": true
-  }
+    "enabled": true,
+  },
 }
