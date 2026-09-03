@@ -44,11 +44,17 @@ type Channel = {
 };
 type CatalogOverride = {
   canonical_key: string;
+  title: string;
   description: string;
   category: string;
   deleted: number;
 };
-type Draft = { description: string; categories: string[]; subscriberCount: number };
+type Draft = {
+  title: string;
+  description: string;
+  categories: string[];
+  subscriberCount: number;
+};
 const categories = [
   'Агучка',
   'Блог',
@@ -95,7 +101,10 @@ export default function AdminChannelsPage() {
       (data.overrides ?? []).map((item) => [item.canonical_key, item]),
     );
     const metrics = new Map(
-      (data.metrics ?? []).map((item) => [item.canonical_key, item.subscriber_count]),
+      (data.metrics ?? []).map((item) => [
+        item.canonical_key,
+        item.subscriber_count,
+      ]),
     );
     const staticChannels = media.flatMap((item) => {
       const key = channelIdentity(item.url);
@@ -106,7 +115,7 @@ export default function AdminChannelsPage() {
         {
           id: `static:${key}`,
           url: item.url ?? '',
-          title: item.title,
+          title: override?.title || item.title,
           description: override?.description ?? item.creator,
           category: override?.category ?? item.category,
           platform: item.platform,
@@ -128,6 +137,7 @@ export default function AdminChannelsPage() {
         next.map((item) => [
           item.id,
           {
+            title: item.title ?? '',
             description: item.description ?? '',
             categories: [...parseCategories(item.category), '', ''].slice(0, 3),
             subscriberCount: item.subscriber_count,
@@ -149,7 +159,8 @@ export default function AdminChannelsPage() {
           .filter(
             (item) =>
               drafts[item.id] &&
-              (drafts[item.id].description !== (item.description ?? '') ||
+              (drafts[item.id].title !== (item.title ?? '') ||
+                drafts[item.id].description !== (item.description ?? '') ||
                 drafts[item.id].categories.filter(Boolean).join('|') !==
                   parseCategories(item.category).join('|') ||
                 drafts[item.id].subscriberCount !== item.subscriber_count),
@@ -182,6 +193,7 @@ export default function AdminChannelsPage() {
           item.id === id
             ? {
                 ...item,
+                title: draft.title,
                 description: draft.description,
                 category: draft.categories.filter(Boolean).join('|'),
                 subscriber_count: draft.subscriberCount,
@@ -324,14 +336,27 @@ export default function AdminChannelsPage() {
                       )}
                     </TableCell>
                     <TableCell className="py-4 align-top whitespace-normal">
+                      <Input
+                        aria-label={`Назва ${item.title ?? ''}`}
+                        value={drafts[item.id]?.title ?? ''}
+                        onChange={(event) =>
+                          setDrafts((current) => ({
+                            ...current,
+                            [item.id]: {
+                              ...current[item.id],
+                              title: event.target.value,
+                            },
+                          }))
+                        }
+                        className="h-10 border-white/10 bg-white/4 font-bold"
+                      />
                       <a
                         href={item.url}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-start gap-1.5 font-bold text-white hover:text-secondary"
+                        className="mt-2 inline-flex items-center gap-1 text-xs text-white/40 hover:text-secondary"
                       >
-                        {item.title ?? item.url}
-                        <ExternalLink className="mt-0.5 size-3.5 shrink-0" />
+                        Адкрыць канал <ExternalLink className="size-3" />
                       </a>
                     </TableCell>
                     <TableCell className="py-4 align-top whitespace-normal">
@@ -415,7 +440,10 @@ export default function AdminChannelsPage() {
                             ...current,
                             [item.id]: {
                               ...current[item.id],
-                              subscriberCount: Math.max(0, Number(event.target.value) || 0),
+                              subscriberCount: Math.max(
+                                0,
+                                Number(event.target.value) || 0,
+                              ),
                             },
                           }))
                         }
@@ -428,6 +456,7 @@ export default function AdminChannelsPage() {
                           disabled={
                             !dirtyIds.has(item.id) ||
                             busyId === item.id ||
+                            !drafts[item.id]?.title.trim() ||
                             !drafts[item.id]?.categories[0]
                           }
                           onClick={() => save(item.id)}

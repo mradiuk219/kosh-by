@@ -1,6 +1,10 @@
 import { ensureSubmissionsTable, type Submission } from '@/lib/submissions';
 import { serializeCategories } from '@/lib/categories';
-import { ensureChannelMetricsTable, refreshYoutubeMetrics, type ChannelMetric } from '@/lib/channel-metrics';
+import {
+  ensureChannelMetricsTable,
+  refreshYoutubeMetrics,
+  type ChannelMetric,
+} from '@/lib/channel-metrics';
 import {
   ensureCatalogOverridesTable,
   type CatalogOverride,
@@ -30,7 +34,9 @@ export async function GET(request: Request) {
     .all<CatalogOverride>();
   const metricsDb = await ensureChannelMetricsTable();
   const metrics = await metricsDb
-    .prepare('SELECT canonical_key, subscriber_count, updated_at FROM channel_metrics')
+    .prepare(
+      'SELECT canonical_key, subscriber_count, updated_at FROM channel_metrics',
+    )
     .all<ChannelMetric>();
   return Response.json({
     channels: result.results ?? [],
@@ -44,11 +50,13 @@ export async function PATCH(request: Request) {
     return Response.json({ error: 'Няма доступу' }, { status: 403 });
   const body = (await request.json().catch(() => null)) as {
     id?: unknown;
+    title?: unknown;
     description?: unknown;
     categories?: unknown;
     subscriberCount?: unknown;
   } | null;
   const id = typeof body?.id === 'string' ? body.id : '';
+  const title = typeof body?.title === 'string' ? body.title.trim() : '';
   const description =
     typeof body?.description === 'string' ? body.description.trim() : '';
   const categoryValues = Array.isArray(body?.categories)
@@ -58,6 +66,8 @@ export async function PATCH(request: Request) {
   const subscriberCount = Number(body?.subscriberCount);
   if (
     !id ||
+    !title ||
+    title.length > 160 ||
     !category ||
     categoryValues.length > 3 ||
     description.length > 1000 ||
@@ -76,36 +86,48 @@ export async function PATCH(request: Request) {
     const db = await ensureCatalogOverridesTable();
     await db
       .prepare(
-        `INSERT INTO catalog_overrides (canonical_key, description, category, deleted, updated_at) VALUES (?, ?, ?, 0, ?)
-         ON CONFLICT(canonical_key) DO UPDATE SET description = excluded.description, category = excluded.category, deleted = 0, updated_at = excluded.updated_at`,
+        `INSERT INTO catalog_overrides (canonical_key, title, description, category, deleted, updated_at) VALUES (?, ?, ?, ?, 0, ?)
+         ON CONFLICT(canonical_key) DO UPDATE SET title = excluded.title, description = excluded.description, category = excluded.category, deleted = 0, updated_at = excluded.updated_at`,
       )
-      .bind(canonicalKey, description, category, new Date().toISOString())
+      .bind(
+        canonicalKey,
+        title,
+        description,
+        category,
+        new Date().toISOString(),
+      )
       .run();
     const metricsDb = await ensureChannelMetricsTable();
-    await metricsDb.prepare(`INSERT INTO channel_metrics (canonical_key, subscriber_count, updated_at) VALUES (?, ?, ?)
+    await metricsDb
+      .prepare(`INSERT INTO channel_metrics (canonical_key, subscriber_count, updated_at) VALUES (?, ?, ?)
       ON CONFLICT(canonical_key) DO UPDATE SET subscriber_count = excluded.subscriber_count, updated_at = excluded.updated_at`)
-      .bind(canonicalKey, subscriberCount, new Date().toISOString()).run();
+      .bind(canonicalKey, subscriberCount, new Date().toISOString())
+      .run();
     return Response.json({ id, description, categories: category.split('|') });
   }
   const db = await ensureSubmissionsTable();
   const current = await db
-    .prepare("SELECT id, canonical_key FROM submissions WHERE id = ? AND status = 'approved'")
+    .prepare(
+      "SELECT id, canonical_key FROM submissions WHERE id = ? AND status = 'approved'",
+    )
     .bind(id)
     .all<{ id: string; canonical_key: string | null }>();
   if (!current.results?.length)
     return Response.json({ error: 'Канал не знойдзены' }, { status: 404 });
   await db
     .prepare(
-      "UPDATE submissions SET description = ?, category = ? WHERE id = ? AND status = 'approved'",
+      "UPDATE submissions SET title = ?, description = ?, category = ? WHERE id = ? AND status = 'approved'",
     )
-    .bind(description, category, id)
+    .bind(title, description, category, id)
     .run();
   const canonicalKey = current.results?.[0]?.canonical_key;
   if (canonicalKey) {
     const metricsDb = await ensureChannelMetricsTable();
-    await metricsDb.prepare(`INSERT INTO channel_metrics (canonical_key, subscriber_count, updated_at) VALUES (?, ?, ?)
+    await metricsDb
+      .prepare(`INSERT INTO channel_metrics (canonical_key, subscriber_count, updated_at) VALUES (?, ?, ?)
       ON CONFLICT(canonical_key) DO UPDATE SET subscriber_count = excluded.subscriber_count, updated_at = excluded.updated_at`)
-      .bind(canonicalKey, subscriberCount, new Date().toISOString()).run();
+      .bind(canonicalKey, subscriberCount, new Date().toISOString())
+      .run();
   }
   return Response.json({ id, description, categories: category.split('|') });
 }

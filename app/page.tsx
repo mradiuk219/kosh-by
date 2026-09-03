@@ -575,7 +575,7 @@ export function approvedSubmissionToMedia(
             ? 'Twitch'
             : host.includes('spotify')
               ? 'Spotify'
-            : 'Сайт');
+              : 'Сайт');
   const lowerReason = submission.reason.toLowerCase();
   const category =
     submission.category ||
@@ -624,6 +624,7 @@ export async function fetchApprovedMedia() {
 
 type CatalogOverride = {
   canonical_key: string;
+  title: string;
   description: string;
   category: string;
   deleted: number;
@@ -669,6 +670,7 @@ export async function fetchCatalogData() {
       override
         ? {
             ...item,
+            title: override.title || item.title,
             creator: override.description,
             category: override.category,
           }
@@ -689,7 +691,10 @@ function mergeMedia(base: Media[], approved: Media[]) {
   const knownChannels = new Set<string>();
   const knownCards = new Set<string>();
   const normalized = (value: string) =>
-    value.toLowerCase().normalize('NFKC').replace(/[^\p{L}\p{N}]+/gu, '');
+    value
+      .toLowerCase()
+      .normalize('NFKC')
+      .replace(/[^\p{L}\p{N}]+/gu, '');
 
   return [...base, ...approved].filter((item) => {
     const identity = channelIdentity(item.url);
@@ -719,7 +724,10 @@ function PlatformIcon({ platform }: { platform: string }) {
 }
 
 function formatSubscriberCount(value: number) {
-  return new Intl.NumberFormat('be-BY', { notation: 'compact', maximumFractionDigits: 1 }).format(value);
+  return new Intl.NumberFormat('be-BY', {
+    notation: 'compact',
+    maximumFractionDigits: 1,
+  }).format(value);
 }
 
 export function MediaCard({
@@ -748,7 +756,7 @@ export function MediaCard({
           ? 'bg-[#9146ff]'
           : item.platform === 'Spotify'
             ? 'bg-[#1db954]'
-          : 'bg-white';
+            : 'bg-white';
   const card = (
     <article
       className={`group relative aspect-[4/5] shrink-0 snap-start overflow-hidden rounded-2xl border border-white/8 bg-card transition hover:-translate-y-1 hover:border-white/20 ${fluid ? 'w-full max-w-none' : 'w-[72vw] max-w-[285px]'}`}
@@ -784,12 +792,15 @@ export function MediaCard({
           <PlatformIcon platform={item.platform} /> {item.platform}
         </Badge>
         <div className="mb-1 flex items-center justify-between gap-2 text-xs font-semibold">
-          <span className="text-secondary">{displayCategories(item.category)}</span>
-          {typeof item.subscriberCount === 'number' && item.subscriberCount > 0 && (
-            <span className="shrink-0 text-white/55">
-              {formatSubscriberCount(item.subscriberCount)} падп.
-            </span>
-          )}
+          <span className="text-secondary">
+            {displayCategories(item.category)}
+          </span>
+          {typeof item.subscriberCount === 'number' &&
+            item.subscriberCount > 0 && (
+              <span className="shrink-0 text-white/55">
+                {formatSubscriberCount(item.subscriberCount)} падп.
+              </span>
+            )}
         </div>
         <h3 className="text-lg font-bold leading-tight text-white">
           {item.title}

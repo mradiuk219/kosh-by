@@ -2,6 +2,7 @@ import { submissionsDb } from '@/lib/submissions';
 
 export type CatalogOverride = {
   canonical_key: string;
+  title: string;
   description: string;
   category: string;
   deleted: number;
@@ -19,6 +20,15 @@ export async function ensureCatalogOverridesTable() {
     updated_at TEXT NOT NULL
   )`)
     .run();
+  const columns = await db
+    .prepare('PRAGMA table_info(catalog_overrides)')
+    .all<{ name: string }>();
+  if (!(columns.results ?? []).some((column) => column.name === 'title'))
+    await db
+      .prepare(
+        "ALTER TABLE catalog_overrides ADD COLUMN title TEXT NOT NULL DEFAULT ''",
+      )
+      .run();
   await db
     .prepare(
       'CREATE INDEX IF NOT EXISTS idx_catalog_overrides_deleted ON catalog_overrides(deleted)',

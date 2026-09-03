@@ -1,0 +1,1 @@
+ALTER TABLE catalog_overrides ADD COLUMN title TEXT NOT NULL DEFAULT '';
