@@ -1,4 +1,8 @@
 import { ensureSubmissionsTable } from '@/lib/submissions';
+import {
+  ensureChannelMetricsTable,
+  refreshYoutubeMetrics,
+} from '@/lib/channel-metrics';
 
 type StatsPayload = {
   total: number;
@@ -9,45 +13,18 @@ type StatsPayload = {
   updatedAt: string;
 };
 
-const baseline = { YouTube: 12, Twitch: 13, Instagram: 12, TikTok: 12, Spotify: 0 };
+const baseline = {
+  YouTube: 12,
+  Twitch: 13,
+  Instagram: 12,
+  TikTok: 12,
+  Spotify: 0,
+};
 const topChannel = {
   name: 'БЕЛСАТ NEWS',
   url: 'https://www.youtube.com/@belsat_news',
   fallback: 442_000,
 };
-
-function parseSubscriberCount(html: string) {
-  const candidates = [
-    ...Array.from(
-      html.matchAll(
-        /"subscriberCountText"\s*:\s*\{[^}]*"simpleText"\s*:\s*"([^"]+)"/gi,
-      ),
-      (match) => match[1],
-    ),
-    ...Array.from(
-      html.matchAll(/([\d.,]+)\s*([KMB])?\s+subscribers/gi),
-      (match) => `${match[1]}${match[2] ?? ''}`,
-    ),
-  ];
-  if (!candidates.length) return null;
-  const values = candidates.map((candidate) => {
-    const match = candidate
-      .replaceAll(',', '')
-      .replace(/\s/g, '')
-      .match(/([\d.]+)([KMB])?/i);
-    if (!match) return 0;
-    const multiplier =
-      match[2]?.toUpperCase() === 'B'
-        ? 1_000_000_000
-        : match[2]?.toUpperCase() === 'M'
-          ? 1_000_000
-          : match[2]?.toUpperCase() === 'K'
-            ? 1_000
-            : 1;
-    return Math.round(Number(match[1]) * multiplier);
-  });
-  return Math.max(...values);
-}
 
 function parseStoredSubscribers(value?: string) {
   if (!value) return 0;
@@ -68,7 +45,7 @@ function formatSubscribers(value: number) {
 
 async function refreshStats(
   db: Awaited<ReturnType<typeof ensureSubmissionsTable>>,
-  previous?: StatsPayload,
+  subscriberCount: number,
 ) {
   const approved = await db
     .prepare("SELECT platform FROM submissions WHERE status = 'approved'")
@@ -93,23 +70,6 @@ async function refreshStats(
     if (item.platform && item.platform in platforms)
       platforms[item.platform] += 1;
   }
-  let subscriberCount = Math.max(
-    parseStoredSubscribers(previous?.topSubscribers),
-    topChannel.fallback,
-  );
-  try {
-    const response = await fetch(topChannel.url, {
-      headers: { 'user-agent': 'Mozilla/5.0 (compatible; KOSH/1.0)' },
-      signal: AbortSignal.timeout(8000),
-    });
-    if (response.ok)
-      subscriberCount = Math.max(
-        parseSubscriberCount(await response.text()) ?? 0,
-        subscriberCount,
-      );
-  } catch {
-    /* захоўваем апошняе вядомае значэнне */
-  }
   const payload: StatsPayload = {
     total: Object.values(platforms).reduce((sum, value) => sum + value, 0),
     platforms,
@@ -129,6 +89,15 @@ async function refreshStats(
 
 export async function GET() {
   const db = await ensureSubmissionsTable();
+  await refreshYoutubeMetrics().catch(() => {});
+  const metricsDb = await ensureChannelMetricsTable();
+  const metric = await metricsDb
+    .prepare(
+      "SELECT subscriber_count FROM channel_metrics WHERE canonical_key = 'youtube:belsat_news'",
+    )
+    .all<{ subscriber_count: number }>();
+  const subscriberCount =
+    metric.results?.[0]?.subscriber_count ?? topChannel.fallback;
   await db
     .prepare(
       'CREATE TABLE IF NOT EXISTS homepage_stats (id TEXT PRIMARY KEY, payload TEXT NOT NULL, updated_at TEXT NOT NULL)',
@@ -144,8 +113,10 @@ export async function GET() {
   const today = new Date().toISOString().slice(0, 10);
   const cacheIsValid =
     row?.updated_at.slice(0, 10) === today &&
-    parseStoredSubscribers(previous?.topSubscribers) >= topChannel.fallback;
-  const payload = cacheIsValid ? previous! : await refreshStats(db, previous);
+    parseStoredSubscribers(previous?.topSubscribers) === subscriberCount;
+  const payload = cacheIsValid
+    ? previous!
+    : await refreshStats(db, subscriberCount);
   return Response.json(payload, {
     headers: { 'cache-control': 'public, max-age=300' },
   });
