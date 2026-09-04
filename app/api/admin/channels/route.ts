@@ -1,5 +1,6 @@
 import { ensureSubmissionsTable, type Submission } from '@/lib/submissions';
 import { serializeCategories } from '@/lib/categories';
+import { hasYoutubeKey } from '@/lib/youtube-discovery';
 import {
   ensureChannelMetricsTable,
   refreshYoutubeMetrics,
@@ -39,6 +40,7 @@ export async function GET(request: Request) {
     )
     .all<ChannelMetric>();
   return Response.json({
+    youtubeConfigured: hasYoutubeKey(),
     channels: result.results ?? [],
     overrides: overrides.results ?? [],
     metrics: metrics.results ?? [],
@@ -46,6 +48,8 @@ export async function GET(request: Request) {
 }
 
 export async function PATCH(request: Request) {
+  const origin = request.headers.get('origin');
+  if (origin && origin !== new URL(request.url).origin) return Response.json({ error: 'Няма доступу' }, { status: 403 });
   if (!isOwner(request))
     return Response.json({ error: 'Няма доступу' }, { status: 403 });
   const body = (await request.json().catch(() => null)) as {
@@ -63,7 +67,7 @@ export async function PATCH(request: Request) {
     ? body.categories.filter((item): item is string => typeof item === 'string')
     : [];
   const category = serializeCategories(categoryValues);
-  const subscriberCount = Number(body?.subscriberCount);
+  const subscriberCount = body?.subscriberCount === null || body?.subscriberCount === undefined ? null : Number(body.subscriberCount);
   if (
     !id ||
     !title ||
@@ -72,8 +76,7 @@ export async function PATCH(request: Request) {
     categoryValues.length > 3 ||
     description.length > 1000 ||
     category.length > 180 ||
-    !Number.isSafeInteger(subscriberCount) ||
-    subscriberCount < 0
+    (subscriberCount !== null && (!Number.isSafeInteger(subscriberCount) || subscriberCount < 0))
   )
     return Response.json(
       { error: 'Праверце катэгорыі і колькасць падпісантаў' },
@@ -98,7 +101,7 @@ export async function PATCH(request: Request) {
       )
       .run();
     const metricsDb = await ensureChannelMetricsTable();
-    await metricsDb
+    if (subscriberCount !== null) await metricsDb
       .prepare(`INSERT INTO channel_metrics (canonical_key, subscriber_count, updated_at) VALUES (?, ?, ?)
       ON CONFLICT(canonical_key) DO UPDATE SET subscriber_count = excluded.subscriber_count, updated_at = excluded.updated_at`)
       .bind(canonicalKey, subscriberCount, new Date().toISOString())
@@ -123,7 +126,7 @@ export async function PATCH(request: Request) {
   const canonicalKey = current.results?.[0]?.canonical_key;
   if (canonicalKey) {
     const metricsDb = await ensureChannelMetricsTable();
-    await metricsDb
+    if (subscriberCount !== null) await metricsDb
       .prepare(`INSERT INTO channel_metrics (canonical_key, subscriber_count, updated_at) VALUES (?, ?, ?)
       ON CONFLICT(canonical_key) DO UPDATE SET subscriber_count = excluded.subscriber_count, updated_at = excluded.updated_at`)
       .bind(canonicalKey, subscriberCount, new Date().toISOString())

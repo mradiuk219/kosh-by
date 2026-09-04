@@ -1,5 +1,6 @@
 import { ensureSubmissionsTable, type Submission } from '@/lib/submissions';
 import { enrichChannel } from '@/lib/enrich-channel';
+import { refreshProfile } from '@/lib/refresh-profile';
 import {
   channelIdentity,
   staticChannelIdentities,
@@ -98,6 +99,7 @@ export async function POST(request: Request) {
     return Response.json({ error: DUPLICATE_MESSAGE }, { status: 409 });
   }
 
+  await refreshProfile(url).catch(() => {});
   return Response.json({ id, status: 'pending' }, { status: 201 });
 }
 
@@ -171,11 +173,11 @@ export async function PATCH(request: Request) {
         .bind(
           status,
           new Date().toISOString(),
-          metadata.title,
-          metadata.description,
-          metadata.category,
+          submission.title || metadata.title,
+          submission.description || metadata.description,
+          submission.category || metadata.category,
           metadata.platform,
-          metadata.avatarUrl,
+          metadata.avatarUrl || submission.avatar_url,
           channelIdentity(submission.url),
           id,
         )

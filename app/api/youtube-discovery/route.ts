@@ -1,4 +1,5 @@
 import { ensureSubmissionsTable } from '@/lib/submissions';
+import { refreshProfile } from '@/lib/refresh-profile';
 import { ensureYoutubeDiscoveryTables, hasYoutubeKey, hideKnownYoutubeCandidates, runYoutubeDiscovery, type DiscoveryRun, type YoutubeCandidate } from '@/lib/youtube-discovery';
 
 const OWNER_EMAIL = 'radziuk219@gmail.com';
@@ -40,5 +41,6 @@ export async function POST(request: Request) {
   }
   await db.prepare('UPDATE youtube_candidates SET status = ?, reviewed_at = ? WHERE id = ?').bind(status, new Date().toISOString(), id).run();
   if (status === 'approved') await db.prepare("DELETE FROM homepage_stats WHERE id = 'current'").run();
+  if (status === 'approved') await refreshProfile(candidate.url).catch(() => {});
   return Response.json({ id, status });
 }

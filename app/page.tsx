@@ -634,12 +634,14 @@ type ChannelMetric = {
   canonical_key: string;
   subscriber_count: number;
 };
+export type ProfileRecord = { canonical_key: string; title: string | null; description: string | null; avatar_url: string | null; subscriber_count: number | null; status: string; error?: string | null; checked_at: string };
 
 export async function fetchCatalogData() {
-  const [approved, overrideResponse, metricsResponse] = await Promise.all([
+  const [approved, overrideResponse, metricsResponse, profileResponse] = await Promise.all([
     fetchApprovedMedia(),
     fetch('/api/catalog-overrides', { cache: 'no-store' }),
     fetch('/api/channel-metrics', { cache: 'no-store' }),
+    fetch('/api/profile-metadata', { cache: 'no-store' }),
   ]);
   const overrideData = overrideResponse.ok
     ? ((await overrideResponse.json()) as { overrides?: CatalogOverride[] })
@@ -658,10 +660,11 @@ export async function fetchCatalogData() {
   );
   const withMetric = (item: Media) => {
     const key = channelIdentity(item.url);
-    return key && metrics.has(key)
-      ? { ...item, subscriberCount: metrics.get(key) }
-      : item;
+    const profile = key ? profiles.get(key) : undefined;
+    return { ...item, image: profile?.avatar_url || item.image, creator: item.creator || profile?.description || '', subscriberCount: (key ? metrics.get(key) : undefined) ?? profile?.subscriber_count ?? item.subscriberCount };
   };
+  const profileData = profileResponse.ok ? await profileResponse.json() as { profiles: ProfileRecord[] } : { profiles: [] };
+  const profiles = new Map(profileData.profiles.map((p) => [p.canonical_key, p]));
   const base = media.flatMap((item) => {
     const key = channelIdentity(item.url);
     const override = key ? overrides.get(key) : undefined;

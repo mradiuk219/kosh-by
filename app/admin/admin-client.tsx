@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { Submission } from '@/lib/submissions';
+import SocialDiscoveryPanel from '@/app/admin/social-discovery-panel';
 
 const statusLabels = {
   pending: 'Чакае праверкі',
@@ -205,6 +206,7 @@ export default function AdminPage() {
         </div>
       </header>
       <div className="mx-auto max-w-6xl px-5 py-10">
+        {!forbidden && !loading && <SocialDiscoveryPanel />}
         {!forbidden && (
           <section className="mb-10 rounded-3xl border border-white/10 bg-white/4 p-5 sm:p-7">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">

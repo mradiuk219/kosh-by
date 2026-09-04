@@ -1,3 +1,7 @@
+import { env } from 'cloudflare:workers';
+import { fetchInstagramPage } from '@/lib/instagram-fetch';
+import { allowedProfileUrl, fetchProfilePage, parseProfile, imageUrl, countValue } from '@/lib/profile-metadata';
+
 export type ChannelMetadata = {
   title: string;
   description: string;
@@ -5,6 +9,7 @@ export type ChannelMetadata = {
   platform: string;
   avatarUrl: string | null;
   subscriberCount: number | null;
+  warnings?: string[];
 };
 
 type TwitchUser = {
@@ -94,6 +99,7 @@ export async function enrichChannel(
   reason: string,
 ): Promise<ChannelMetadata> {
   const url = new URL(sourceUrl);
+  if (!allowedProfileUrl(sourceUrl)) throw new Error('Непадтрымліваемая спасылка');
   const platform = platformForHost(url.hostname.toLowerCase());
   const allowed = [
     'youtube.com',
@@ -167,35 +173,59 @@ export async function enrichChannel(
     };
   }
 
-  const response = await fetch(url.toString(), {
-    headers: {
-      'user-agent':
-        'Mozilla/5.0 (compatible; KOSH/1.0; +https://kosh-belarus.radziuk219.chatgpt.site)',
-    },
-    redirect: 'follow',
-    signal: AbortSignal.timeout(8000),
-  });
-  if (!response.ok)
-    throw new Error(`Metadata request failed: ${response.status}`);
-  const html = await response.text();
-  const rawTitle = readMeta(html, ['og:title', 'twitter:title']);
-  const title =
-    rawTitle
-      .replace(/\s*[|–-]\s*(YouTube|Instagram|TikTok|Twitch|Spotify).*$/i, '')
-      .trim() || fallbackTitle(url);
-  const description =
-    readMeta(html, [
-      'og:description',
-      'twitter:description',
-      'description',
-    ]).slice(0, 500) || reason;
-  const avatarUrl = readMeta(html, ['og:image', 'twitter:image']) || null;
+  const handle = url.pathname.split('/').filter(Boolean)[0]?.replace(/^@/, '') ?? '';
+  const warnings: string[] = [];
+  const html = await (platform === 'Instagram' ? fetchInstagramPage(url.toString()) : fetchProfilePage(url.toString())).catch((error) => { warnings.push(error instanceof Error ? error.message : 'Не ўдалося прачытаць профіль'); return ''; });
+  const parsed = parseProfile(html, platform, handle);
+  if (platform === 'Spotify' || platform === 'TikTok') {
+    try {
+      const endpoint = platform === 'Spotify' ? 'https://open.spotify.com/oembed' : 'https://www.tiktok.com/oembed';
+      const response = await fetch(`${endpoint}?url=${encodeURIComponent(url.toString())}`, { redirect: 'error', signal: AbortSignal.timeout(8000) });
+      if (response.ok) {
+        const embed = await response.json() as { title?: string; author_name?: string; thumbnail_url?: string };
+        parsed.title = (platform === 'TikTok' ? embed.author_name : embed.title) || parsed.title;
+        parsed.avatarUrl = imageUrl(embed.thumbnail_url) ?? parsed.avatarUrl;
+      }
+    } catch { warnings.push('oEmbed недаступны: тайм-аўт або сеткавая памылка.'); }
+  }
+  const key = (env as unknown as { YOUTUBE_API_KEY?: string }).YOUTUBE_API_KEY;
+  if (platform === 'YouTube' && !key) warnings.push('Ключ YouTube API не падключаны.');
+  if (platform === 'YouTube' && key) {
+    try {
+      const parts = url.pathname.split('/').filter(Boolean);
+      const params = new URLSearchParams({ part: 'snippet,statistics', key });
+      if (parts[0] === 'channel') params.set('id', parts[1]);
+      else if (parts[0]?.startsWith('@')) params.set('forHandle', parts[0]);
+      else if (parts[0] === 'user') params.set('forUsername', parts[1]);
+      else throw new Error('Для YouTube API патрэбная спасылка на канал, а не на відэа.');
+      const response = await fetch(`https://www.googleapis.com/youtube/v3/channels?${params}`, { signal: AbortSignal.timeout(8000) });
+      if (response.ok) {
+        const data = await response.json() as { items?: { snippet?: { title?: string; description?: string; thumbnails?: { high?: { url?: string } } }; statistics?: { subscriberCount?: string; hiddenSubscriberCount?: boolean } }[] };
+        const item = data.items?.[0];
+        if (!item) warnings.push('YouTube API не знайшоў канал па гэтай спасылцы.');
+        parsed.title = item?.snippet?.title || parsed.title;
+        parsed.description = item?.snippet?.description || parsed.description;
+        parsed.avatarUrl = imageUrl(item?.snippet?.thumbnails?.high?.url) ?? parsed.avatarUrl;
+        if (!item?.statistics?.hiddenSubscriberCount) parsed.subscriberCount = countValue(item?.statistics?.subscriberCount);
+      } else {
+        const errorBody = await response.json().catch(() => null) as { error?: { errors?: { reason?: string }[] } } | null;
+        const reason = errorBody?.error?.errors?.[0]?.reason;
+        const safeReasons: Record<string, string> = { quotaExceeded: 'вычарпаная квота', keyInvalid: 'няправільны ключ', accessNotConfigured: 'API не ўключаны', ipRefererBlocked: 'абмежаванні ключа', forbidden: 'доступ забаронены' };
+        warnings.push(`YouTube API: HTTP ${response.status}${reason && safeReasons[reason] ? ` — ${safeReasons[reason]}` : ''}.`);
+      }
+    } catch (error) { warnings.push(error instanceof Error && error.message.startsWith('Для YouTube') ? error.message : 'YouTube API не адказаў: тайм-аўт або сеткавая памылка.'); }
+  }
+  const title = parsed.title || fallbackTitle(url);
+  const description = parsed.description.slice(0, 1000) || reason;
+  const avatarUrl = parsed.avatarUrl;
+  if (!parsed.avatarUrl && !parsed.description && parsed.subscriberCount === null && html) warnings.push(`${platform} адказаў, але метаданыя профілю ў адказе не знойдзеныя.`);
   return {
     title,
     description,
     category: chooseCategory(`${title} ${description} ${reason}`),
     platform,
     avatarUrl,
-    subscriberCount: null,
+    subscriberCount: parsed.subscriberCount,
+    warnings,
   };
 }

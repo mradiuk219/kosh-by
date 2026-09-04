@@ -1,3 +1,16 @@
+export const profileMetadataSchema = `CREATE TABLE profile_metadata (
+ canonical_key TEXT PRIMARY KEY,
+ title TEXT,
+ description TEXT,
+ avatar_url TEXT,
+ subscriber_count INTEGER CHECK (subscriber_count IS NULL OR subscriber_count >= 0),
+ checked_at TEXT NOT NULL,
+ status TEXT NOT NULL CHECK (status IN ('complete', 'partial', 'unavailable')),
+ error TEXT,
+ manual_avatar_url TEXT
+);`;
+export const instagramFetchStateSchema = `CREATE TABLE instagram_fetch_state (id TEXT PRIMARY KEY, next_attempt_at INTEGER NOT NULL);`;
+
 export const submissionsSchema = `CREATE TABLE IF NOT EXISTS submissions (
   id TEXT PRIMARY KEY,
   url TEXT NOT NULL,

@@ -23,6 +23,12 @@
       "migrations_dir": "drizzle",
     },
   ],
+  "r2_buckets": [
+    {
+      "binding": "LOGOS",
+      "bucket_name": "kosh-production-logos",
+    },
+  ],
   "build": {
     "command": "node node_modules/vinext/dist/cli.js build",
   },

@@ -31,6 +31,8 @@ import {
 import { parseCategories } from '@/lib/categories';
 import { channelIdentity } from '@/lib/channel-identity';
 import { media } from '@/app/page';
+import type { ProfileRecord } from '@/app/page';
+import RefreshMetadataButton from '@/app/admin/refresh-metadata-button';
 
 type Channel = {
   id: string;
@@ -40,7 +42,7 @@ type Channel = {
   category: string | null;
   platform: string | null;
   avatar_url: string | null;
-  subscriber_count: number;
+  subscriber_count: number | null;
 };
 type CatalogOverride = {
   canonical_key: string;
@@ -53,7 +55,7 @@ type Draft = {
   title: string;
   description: string;
   categories: string[];
-  subscriberCount: number;
+  subscriberCount: number | null;
 };
 const categories = [
   'Агучка',
@@ -82,8 +84,11 @@ export default function AdminChannelsPage() {
   const [loading, setLoading] = useState(true);
   const [forbidden, setForbidden] = useState(false);
   const [busyId, setBusyId] = useState('');
+  const [uploadingId, setUploadingId] = useState('');
   const [message, setMessage] = useState('');
   const [query, setQuery] = useState('');
+  const [youtubeConfigured, setYoutubeConfigured] = useState(true);
+  const [profiles, setProfiles] = useState<Map<string, ProfileRecord>>(new Map());
 
   const load = useCallback(async () => {
     const response = await fetch('/api/admin/channels', { cache: 'no-store' });
@@ -94,9 +99,15 @@ export default function AdminChannelsPage() {
     }
     const data = (await response.json()) as {
       channels?: Channel[];
+      youtubeConfigured?: boolean;
       overrides?: CatalogOverride[];
       metrics?: { canonical_key: string; subscriber_count: number }[];
     };
+    const profileResponse = await fetch('/api/profile-metadata', { cache: 'no-store' });
+    setYoutubeConfigured(data.youtubeConfigured === true);
+    const profileData = profileResponse.ok ? await profileResponse.json() as { profiles: ProfileRecord[] } : { profiles: [] };
+    const fresh = new Map(profileData.profiles.map((p) => [p.canonical_key, p]));
+    setProfiles(fresh);
     const overrides = new Map(
       (data.overrides ?? []).map((item) => [item.canonical_key, item]),
     );
@@ -119,14 +130,15 @@ export default function AdminChannelsPage() {
           description: override?.description ?? item.creator,
           category: override?.category ?? item.category,
           platform: item.platform,
-          avatar_url: item.image ?? null,
-          subscriber_count: metrics.get(key) ?? 0,
+          avatar_url: fresh.get(key)?.avatar_url ?? item.image ?? null,
+          subscriber_count: metrics.get(key) ?? fresh.get(key)?.subscriber_count ?? null,
         } satisfies Channel,
       ];
     });
     const databaseChannels = (data.channels ?? []).map((item) => ({
       ...item,
-      subscriber_count: metrics.get(channelIdentity(item.url) ?? '') ?? 0,
+      avatar_url: fresh.get(channelIdentity(item.url) ?? '')?.avatar_url ?? item.avatar_url,
+      subscriber_count: metrics.get(channelIdentity(item.url) ?? '') ?? fresh.get(channelIdentity(item.url) ?? '')?.subscriber_count ?? null,
     }));
     const next = [...staticChannels, ...databaseChannels].sort((a, b) =>
       (a.title ?? a.url).localeCompare(b.title ?? b.url, 'be'),
@@ -210,6 +222,21 @@ export default function AdminChannelsPage() {
     setBusyId('');
   };
 
+  const uploadLogo = async (item: Channel, file: File) => {
+    if (file.size > 1024 * 1024 || !['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
+      setMessage('Выберыце PNG, JPEG або WebP памерам да 1 МБ'); return;
+    }
+    setUploadingId(item.id); setMessage('');
+    try {
+      const response = await fetch(`/api/channel-logo?channel=${encodeURIComponent(channelIdentity(item.url) ?? '')}`, { method: 'POST', headers: { 'Content-Type': file.type }, body: file });
+      const result = await response.json() as { error?: string; avatar_url: string };
+      if (!response.ok) throw new Error(result.error || 'Не ўдалося загрузіць лога');
+      setChannels(current => current.map(channel => channel.id === item.id ? { ...channel, avatar_url: result.avatar_url } : channel));
+      setMessage('Лога захавана. Аўтаматычнае абнаўленне яго не заменіць.');
+    } catch (error) { setMessage(error instanceof Error ? error.message : 'Не ўдалося загрузіць лога'); }
+    finally { setUploadingId(''); }
+  };
+
   const remove = async (id: string) => {
     setBusyId(id);
     setMessage('');
@@ -249,7 +276,10 @@ export default function AdminChannelsPage() {
         </div>
       </header>
       <div className="mx-auto max-w-[1500px] px-5 py-10">
+        {!forbidden && !loading && <RefreshMetadataButton onDone={load} />}
+        {!forbidden && !loading && !youtubeConfigured && <p role="status" className="mb-5 text-sm text-amber-200">YouTube API не падключаны. Для надзейнага абнаўлення патрэбны ключ YouTube у наладах сайта.</p>}
         <div className="mb-7">
+          <p className="mb-4 text-sm text-white/65">Instagram можна запоўніць уручную: загрузіце лога, увядзіце апісанне і падпісантаў. Лога захоўваецца адразу; для тэксту і лічбаў націсніце «Захаваць». Пасля памылкі 429 запыты да Instagram прыпыняюцца на 6 гадзін, ранейшыя даныя застаюцца.</p>
           <p className="text-xs font-bold uppercase tracking-[0.16em] text-secondary">
             База КОШа
           </p>
@@ -334,6 +364,11 @@ export default function AdminChannelsPage() {
                           {item.title?.slice(0, 1) ?? '?'}
                         </div>
                       )}
+                      <label className="mt-2 block text-sm text-white/65">
+                        {uploadingId === item.id ? 'Загружаем…' : 'Загрузіць лога'}
+                        <Input type="file" accept="image/png,image/jpeg,image/webp" aria-label={`Загрузіць лога ${item.title ?? ''}`} disabled={Boolean(uploadingId)} className="mt-1 w-44 text-sm" onChange={event => { const file = event.target.files?.[0]; if (file) void uploadLogo(item, file); event.target.value = ''; }} />
+                        <span className="text-xs">PNG, JPEG, WebP · да 1 МБ</span>
+                      </label>
                     </TableCell>
                     <TableCell className="py-4 align-top whitespace-normal">
                       <Input
@@ -374,6 +409,7 @@ export default function AdminChannelsPage() {
                         }
                         className="min-h-24 resize-y border-white/10 bg-white/4 text-sm leading-relaxed text-white"
                       />
+                      {profiles.has(channelIdentity(item.url) ?? '') && <details className="mt-2 text-sm text-white/60"><summary className="cursor-pointer">Апошнія даныя крыніцы</summary><p>{profiles.get(channelIdentity(item.url) ?? '')?.description || 'Апісанне недаступнае'}</p><p>Падпісанты: {profiles.get(channelIdentity(item.url) ?? '')?.subscriber_count ?? 'невядома'}</p><p>Стан: {profiles.get(channelIdentity(item.url) ?? '')?.status === 'complete' ? 'поўныя даныя' : profiles.get(channelIdentity(item.url) ?? '')?.status === 'partial' ? 'частковыя даныя' : 'крыніца не аддала даныя'}</p><p>{profiles.get(channelIdentity(item.url) ?? '')?.error}</p></details>}
                     </TableCell>
                     <TableCell className="py-4 align-top">
                       <div className="space-y-2">
@@ -434,13 +470,14 @@ export default function AdminChannelsPage() {
                         min={0}
                         step={1}
                         aria-label={`Колькасць падпісантаў ${item.title ?? ''}`}
-                        value={drafts[item.id]?.subscriberCount ?? 0}
+                        value={drafts[item.id]?.subscriberCount ?? ''}
+                        placeholder="Невядома"
                         onChange={(event) =>
                           setDrafts((current) => ({
                             ...current,
                             [item.id]: {
                               ...current[item.id],
-                              subscriberCount: Math.max(
+                              subscriberCount: event.target.value === '' ? null : Math.max(
                                 0,
                                 Number(event.target.value) || 0,
                               ),
