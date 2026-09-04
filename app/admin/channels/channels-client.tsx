@@ -228,7 +228,7 @@ export default function AdminChannelsPage() {
     }
     setUploadingId(item.id); setMessage('');
     try {
-      const response = await fetch(`/api/channel-logo?channel=${encodeURIComponent(channelIdentity(item.url) ?? '')}`, { method: 'POST', headers: { 'Content-Type': file.type }, body: file });
+      const response = await fetch(`/admin/api/channel-logo?channel=${encodeURIComponent(channelIdentity(item.url) ?? '')}`, { method: 'POST', headers: { 'Content-Type': file.type }, body: file });
       const result = await response.json() as { error?: string; avatar_url: string };
       if (!response.ok) throw new Error(result.error || 'Не ўдалося загрузіць лога');
       setChannels(current => current.map(channel => channel.id === item.id ? { ...channel, avatar_url: result.avatar_url } : channel));

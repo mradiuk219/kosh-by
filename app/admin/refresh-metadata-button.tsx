@@ -9,7 +9,7 @@ export default function RefreshMetadataButton({ onDone }: { onDone: () => Promis
     let offset: number | null = 0; let checked = 0; let partial = 0; let unavailable = 0;
     try {
       while (offset !== null) {
-        const response = await fetch('/api/profile-metadata', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ offset }) });
+        const response = await fetch('/admin/api/profile-metadata', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ offset }) });
         if (!response.ok) {
           const failure = await response.json().catch(() => null) as { error?: string } | null;
           throw new Error(failure?.error ? `Абнаўленне перарвалася: ${failure.error}` : 'Абнаўленне перарвалася. Ужо атрыманыя даныя захаваныя.');

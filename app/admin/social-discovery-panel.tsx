@@ -17,7 +17,7 @@ function CandidateCard({ candidate, onReview }: { candidate: SocialCandidate; on
   async function review(status: 'approved' | 'rejected') {
     setBusy(true); setError('');
     try {
-      const response = await fetch('/api/social-discovery', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: candidate.id, status, languageConfirmed: confirmed, title, description }) });
+      const response = await fetch('/admin/api/social-discovery', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: candidate.id, status, languageConfirmed: confirmed, title, description }) });
       const data = await response.json() as { error?: string };
       if (!response.ok) throw new Error(data.error ?? 'Не ўдалося апрацаваць кандыдата');
       await onReview();
@@ -48,7 +48,7 @@ export default function SocialDiscoveryPanel() {
   const [archived, setArchived] = useState(false);
   const autoStarted = useRef(false);
   const load = useCallback(async () => {
-    const response = await fetch('/api/social-discovery', { cache: 'no-store' });
+    const response = await fetch('/admin/api/social-discovery', { cache: 'no-store' });
     if (!response.ok) throw new Error('Не ўдалося загрузіць кандыдатаў. Абнавіце старонку.');
     const data = await response.json() as { candidates: SocialCandidate[]; lastRun: Run | null };
     setCandidates(data.candidates); setLastRun(data.lastRun); setLoading(false);
@@ -56,7 +56,7 @@ export default function SocialDiscoveryPanel() {
   const run = useCallback(async () => {
     setBusy(true); setError('');
     try {
-      const response = await fetch('/api/social-discovery', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action: 'run' }) });
+      const response = await fetch('/admin/api/social-discovery', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action: 'run' }) });
       const data = await response.json() as { error?: string };
       if (!response.ok) throw new Error(data.error ?? 'Пошук недаступны');
       await load();
