@@ -2,12 +2,12 @@ import { submissionsDb } from '@/lib/submissions';
 import { runSocialDiscovery, type SocialCandidate } from '@/lib/social-discovery';
 import { socialProfile } from '@/lib/social-discovery-core';
 import { refreshProfile } from '@/lib/refresh-profile';
+import { isOwnerRequest } from '@/lib/admin-access';
 
-const isOwner = (request: Request) => request.headers.get('oai-authenticated-user-email')?.toLowerCase() === 'radziuk219@gmail.com';
 const reply = (data: unknown, status = 200) => Response.json(data, { status, headers: { 'Cache-Control': 'no-store' } });
 
 export async function GET(request: Request) {
-  if (!isOwner(request)) return reply({ error: 'Няма доступу' }, 403);
+  if (!isOwnerRequest(request)) return reply({ error: 'Няма доступу' }, 403);
   const db = submissionsDb();
   const candidates = await db.prepare("SELECT * FROM social_candidates ORDER BY CASE status WHEN 'pending' THEN 0 ELSE 1 END, discovered_at DESC LIMIT 500").all<SocialCandidate>();
   const runs = await db.prepare('SELECT * FROM social_discovery_runs ORDER BY started_at DESC LIMIT 1').all();
@@ -15,7 +15,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  if (!isOwner(request)) return reply({ error: 'Няма доступу' }, 403);
+  if (!isOwnerRequest(request)) return reply({ error: 'Няма доступу' }, 403);
   const origin = request.headers.get('origin');
   if (origin && origin !== new URL(request.url).origin) return reply({ error: 'Няправільная крыніца запыту' }, 403);
   const raw = await request.text();

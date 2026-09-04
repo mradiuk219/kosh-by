@@ -10,7 +10,10 @@ export default function RefreshMetadataButton({ onDone }: { onDone: () => Promis
     try {
       while (offset !== null) {
         const response = await fetch('/api/profile-metadata', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ offset }) });
-        if (!response.ok) throw new Error('Абнаўленне перарвалася. Ужо атрыманыя даныя захаваныя.');
+        if (!response.ok) {
+          const failure = await response.json().catch(() => null) as { error?: string } | null;
+          throw new Error(failure?.error ? `Абнаўленне перарвалася: ${failure.error}` : 'Абнаўленне перарвалася. Ужо атрыманыя даныя захаваныя.');
+        }
         const data = await response.json() as { results: { status: string }[]; total: number; next: number | null };
         checked += data.results.length; partial += data.results.filter((r) => r.status === 'partial').length; unavailable += data.results.filter((r) => r.status === 'unavailable').length;
         setMessage(`Праверана ${checked} з ${data.total}. Частковыя даныя: ${partial}; недаступныя: ${unavailable}.`);

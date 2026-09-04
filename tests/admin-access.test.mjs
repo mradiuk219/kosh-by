@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import ts from 'typescript';
+const module = { exports: {} };
+const code = ts.transpileModule(readFileSync(new URL('../lib/admin-access.ts', import.meta.url), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
+new Function('require', 'exports', 'module', code)(() => {}, module.exports, module);
+const { isOwnerRequest } = module.exports;
+const request = headers => new Request('https://example.test', { headers });
+assert.equal(isOwnerRequest(request({ 'oai-authenticated-user-email': 'radziuk219@gmail.com' })), true);
+assert.equal(isOwnerRequest(request({ 'cf-access-authenticated-user-email': 'radziuk219@gmail.com' })), true);
+assert.equal(isOwnerRequest(request({ 'cf-access-authenticated-user-email': 'other@example.com' })), false);
+assert.equal(isOwnerRequest(request({})), false);
+console.log('PASS: owner access accepts Sites and Cloudflare Access identities');

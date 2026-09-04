@@ -3,10 +3,11 @@ import { submissionsDb } from '@/lib/submissions';
 import { refreshTargets } from '@/lib/refresh-profile';
 import { channelIdentity } from '@/lib/channel-identity';
 import { logoMime, MAX_LOGO_BYTES } from '@/lib/logo-file';
+import { isOwnerRequest } from '@/lib/admin-access';
 
 const bucket = () => (env as unknown as { LOGOS: R2Bucket }).LOGOS;
 export async function POST(request: Request) {
-  if (request.headers.get('oai-authenticated-user-email')?.toLowerCase() !== 'radziuk219@gmail.com') return Response.json({ error: 'Няма доступу' }, { status: 403 });
+  if (!isOwnerRequest(request)) return Response.json({ error: 'Няма доступу' }, { status: 403 });
   if (request.headers.get('origin') !== new URL(request.url).origin) return Response.json({ error: 'Няма доступу' }, { status: 403 });
   const key = new URL(request.url).searchParams.get('channel');
   if (!key || !(await refreshTargets()).some(url => channelIdentity(url) === key)) return Response.json({ error: 'Канал не знойдзены' }, { status: 404 });
