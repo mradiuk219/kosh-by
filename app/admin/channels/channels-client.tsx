@@ -364,10 +364,10 @@ export default function AdminChannelsPage() {
                           {item.title?.slice(0, 1) ?? '?'}
                         </div>
                       )}
-                      <label className="mt-2 block text-sm text-white/65">
-                        {uploadingId === item.id ? 'Загружаем…' : 'Загрузіць лога'}
-                        <Input type="file" accept="image/png,image/jpeg,image/webp" aria-label={`Загрузіць лога ${item.title ?? ''}`} disabled={Boolean(uploadingId)} className="mt-1 w-44 text-sm" onChange={event => { const file = event.target.files?.[0]; if (file) void uploadLogo(item, file); event.target.value = ''; }} />
-                        <span className="text-xs">PNG, JPEG, WebP · да 1 МБ</span>
+                      <label className="mt-2 flex w-40 flex-col items-stretch gap-1.5 text-sm text-white/65">
+                        <span className="block">{uploadingId === item.id ? 'Загружаем…' : 'Загрузіць лога'}</span>
+                        <Input type="file" accept="image/png,image/jpeg,image/webp" aria-label={`Загрузіць лога ${item.title ?? ''}`} disabled={Boolean(uploadingId)} className="block h-auto w-full min-w-0 py-1.5 text-xs file:block file:max-w-full file:truncate" onChange={event => { const file = event.target.files?.[0]; if (file) void uploadLogo(item, file); event.target.value = ''; }} />
+                        <span className="block text-xs leading-snug">PNG, JPEG, WebP · да 1 МБ</span>
                       </label>
                     </TableCell>
                     <TableCell className="py-4 align-top whitespace-normal">
