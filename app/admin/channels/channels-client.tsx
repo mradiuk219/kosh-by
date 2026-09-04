@@ -322,26 +322,26 @@ export default function AdminChannelsPage() {
           </div>
         ) : (
           <div className="overflow-hidden rounded-2xl border border-white/10 bg-black/10">
-            <Table className="min-w-[1360px]">
+            <Table className="min-w-[1440px] table-fixed">
               <TableHeader className="bg-white/5">
                 <TableRow className="border-white/10 hover:bg-white/5">
-                  <TableHead className="w-20 px-4 text-white/45">
+                  <TableHead className="w-48 px-4 text-white/45">
                     Лога
                   </TableHead>
-                  <TableHead className="w-56 text-white/45">Назва</TableHead>
-                  <TableHead className="min-w-[390px] text-white/45">
+                  <TableHead className="w-[340px] text-white/45">Назва</TableHead>
+                  <TableHead className="w-80 text-white/45">
                     Апісанне
                   </TableHead>
-                  <TableHead className="w-64 text-white/45">
+                  <TableHead className="w-56 text-white/45">
                     Катэгорыі (да 3)
                   </TableHead>
-                  <TableHead className="w-28 text-white/45">
+                  <TableHead className="w-24 text-white/45">
                     Платформа
                   </TableHead>
-                  <TableHead className="w-36 text-white/45">
+                  <TableHead className="w-28 text-white/45">
                     Падпісанты
                   </TableHead>
-                  <TableHead className="w-44 px-4 text-right text-white/45">
+                  <TableHead className="w-40 px-4 text-right text-white/45">
                     Дзеянні
                   </TableHead>
                 </TableRow>
@@ -383,7 +383,7 @@ export default function AdminChannelsPage() {
                             },
                           }))
                         }
-                        className="h-10 border-white/10 bg-white/4 font-bold"
+                        className="h-10 border-white/10 bg-white/4 text-base font-bold"
                       />
                       <a
                         href={item.url}
