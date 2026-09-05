@@ -10,6 +10,7 @@ import {
   RefreshCw,
   Search,
   X,
+  LibraryBig,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { Submission } from '@/lib/submissions';
@@ -190,9 +191,16 @@ export default function AdminPage() {
           </a>
           <span className="text-sm text-white/35">/ Адміністратар</span>
           <Button
-            render={<a href="/admin/channels" />}
+            render={<a href="/admin/culture" />}
             variant="ghost"
             className="ml-auto rounded-full text-white/65"
+          >
+            <LibraryBig className="size-4" /> Кіно і кнігі
+          </Button>
+          <Button
+            render={<a href="/admin/channels" />}
+            variant="ghost"
+            className="rounded-full text-white/65"
           >
             <Database className="size-4" /> База КОШа
           </Button>

@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { parseCategories } from '@/lib/categories';
 import { fetchCatalogData, MediaCard, media, type Media } from '../page';
 
-const platforms = ['YouTube', 'Instagram', 'TikTok', 'Twitch', 'Spotify'];
+const platforms = ['YouTube', 'Instagram', 'TikTok', 'Twitch', 'Spotify', 'Кіно', 'Кнігі'];
 type SortKey = 'popular' | 'az' | 'za' | 'newest' | 'platform';
 
 export default function CatalogPage() {
@@ -127,7 +127,7 @@ export default function CatalogPage() {
             Каталог беларускага кантэнту
           </h1>
           <p className="mt-4 text-white/55">
-            Шукай аўтараў па платформе і тэме
+            Шукай каналы, фільмы і кнігі па назве, аўтару або тэме
           </p>
         </div>
 

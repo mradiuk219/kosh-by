@@ -50,6 +50,9 @@ export type Media = {
   featured?: boolean;
   addedAt?: string;
   subscriberCount?: number;
+  contentKind?: 'channel' | 'movie' | 'book';
+  releaseYear?: number;
+  author?: string;
 };
 
 const PLATFORM_BY_HOST = [
@@ -637,12 +640,21 @@ type ChannelMetric = {
 export type ProfileRecord = { canonical_key: string; title: string | null; description: string | null; avatar_url: string | null; subscriber_count: number | null; status: string; error?: string | null; checked_at: string };
 
 export async function fetchCatalogData() {
-  const [approved, overrideResponse, metricsResponse, profileResponse] = await Promise.all([
+  const [approved, overrideResponse, metricsResponse, profileResponse, cultureResponse] = await Promise.all([
     fetchApprovedMedia(),
     fetch('/api/catalog-overrides', { cache: 'no-store' }),
     fetch('/api/channel-metrics', { cache: 'no-store' }),
     fetch('/api/profile-metadata', { cache: 'no-store' }),
+    fetch('/api/culture-items', { cache: 'no-store' }),
   ]);
+  const cultureData = cultureResponse.ok ? await cultureResponse.json() as { items?: Array<{ id:string; kind:'movie'|'book'; title:string; release_year:number; author:string; description:string; url:string; banner_url:string|null; updated_at:string }> } : { items: [] };
+  const culture = (cultureData.items ?? []).map((item): Media => ({
+    title: item.title, creator: item.description,
+    platform: item.kind === 'movie' ? 'Кіно' : 'Кнігі',
+    category: item.kind === 'movie' ? 'Кіно' : 'Кнігі',
+    background: item.banner_url || bg.culture, url: item.url, addedAt: item.updated_at,
+    contentKind: item.kind, releaseYear: item.release_year, author: item.author,
+  }));
   const overrideData = overrideResponse.ok
     ? ((await overrideResponse.json()) as { overrides?: CatalogOverride[] })
     : { overrides: [] as CatalogOverride[] };
@@ -683,10 +695,11 @@ export async function fetchCatalogData() {
   const normalizedApproved = approved.map(normalizeMedia).map(withMetric);
   return {
     approved: normalizedApproved,
-    catalog: mergeMedia(
+    culture,
+    catalog: [...mergeMedia(
       base.map(normalizeMedia).map(withMetric),
       normalizedApproved,
-    ),
+    ), ...culture],
   };
 }
 
@@ -740,6 +753,7 @@ export function MediaCard({
   item: Media;
   fluid?: boolean;
 }) {
+  const cultureCard = item.contentKind === 'movie' || item.contentKind === 'book';
   const badgeClass =
     item.platform === 'YouTube'
       ? 'border-[#ff4e45] bg-[#ff0000]'
@@ -770,8 +784,8 @@ export function MediaCard({
         aria-hidden="true"
         className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105"
       />
-      <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/72 to-[#08090b]/98" />
-      <div className="absolute inset-x-0 top-0 flex justify-center px-5 pt-7">
+      <div className={`absolute inset-0 ${cultureCard ? 'bg-gradient-to-b from-black/10 via-black/35 to-[#08090b]/98' : 'bg-gradient-to-b from-black/55 via-black/72 to-[#08090b]/98'}`} />
+      {!cultureCard && <div className="absolute inset-x-0 top-0 flex justify-center px-5 pt-7">
         {item.image ? (
           <img
             src={item.image}
@@ -786,7 +800,7 @@ export function MediaCard({
             {item.logoText}
           </div>
         )}
-      </div>
+      </div>}
       <div className="absolute inset-x-0 bottom-0 p-5">
         <Badge
           className={`mb-3 font-bold text-white shadow-lg ${badgeClass}`}
@@ -794,11 +808,12 @@ export function MediaCard({
         >
           <PlatformIcon platform={item.platform} /> {item.platform}
         </Badge>
+        {cultureCard && <div className="mb-2 flex flex-wrap gap-x-3 text-xs font-semibold text-white/72"><span>{item.releaseYear}</span><span>{item.author}</span></div>}
         <div className="mb-1 flex items-center justify-between gap-2 text-xs font-semibold">
-          <span className="text-secondary">
+          <span className={cultureCard ? 'sr-only' : 'text-secondary'}>
             {displayCategories(item.category)}
           </span>
-          {typeof item.subscriberCount === 'number' &&
+          {!cultureCard && typeof item.subscriberCount === 'number' &&
             item.subscriberCount > 0 && (
               <span className="shrink-0 text-white/55">
                 {formatSubscriberCount(item.subscriberCount)} падп.
@@ -820,7 +835,7 @@ export function MediaCard({
       href={item.url}
       target="_blank"
       rel="noreferrer"
-      aria-label={`Адкрыць канал ${item.title} на ${item.platform}`}
+      aria-label={cultureCard ? `Адкрыць «${item.title}»` : `Адкрыць канал ${item.title} на ${item.platform}`}
     >
       {card}
     </a>
@@ -1004,14 +1019,16 @@ export default function Home() {
   const [filter, setFilter] = useState('Усё');
   const [catalogMedia, setCatalogMedia] = useState(media);
   const [approvedMedia, setApprovedMedia] = useState<Media[]>([]);
+  const [cultureMedia, setCultureMedia] = useState<Media[]>([]);
   const [heroStats, setHeroStats] = useState<HeroStat[]>(initialHeroStats);
 
   useEffect(() => {
     let active = true;
-    void fetchCatalogData().then(({ approved, catalog }) => {
+    void fetchCatalogData().then(({ approved, catalog, culture }) => {
       if (!active) return;
       setApprovedMedia(approved);
-      setCatalogMedia(shuffleMedia(catalog));
+      setCatalogMedia(shuffleMedia(catalog.filter((item) => !item.contentKind)));
+      setCultureMedia(culture);
     });
     return () => {
       active = false;
@@ -1274,6 +1291,30 @@ export default function Home() {
         )}
       </section>
 
+      <section className="mx-auto max-w-[1500px] px-5 py-12 lg:px-10">
+        <div className="mb-6">
+          <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-secondary">Глядзець па-беларуску</p>
+          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Кіно і мультфільмы</h2>
+        </div>
+        {cultureMedia.some((item) => item.contentKind === 'movie') ? (
+          <CarouselRow items={cultureMedia.filter((item) => item.contentKind === 'movie')} />
+        ) : (
+          <p className="rounded-3xl border border-dashed border-white/12 px-6 py-10 text-center text-white/40">Кіно хутка з’явіцца ў КОШы</p>
+        )}
+      </section>
+
+      <section className="mx-auto max-w-[1500px] px-5 py-12 lg:px-10">
+        <div className="mb-6">
+          <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-primary">Чытаць па-беларуску</p>
+          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Кнігі</h2>
+        </div>
+        {cultureMedia.some((item) => item.contentKind === 'book') ? (
+          <CarouselRow items={cultureMedia.filter((item) => item.contentKind === 'book')} />
+        ) : (
+          <p className="rounded-3xl border border-dashed border-white/12 px-6 py-10 text-center text-white/40">Кнігі хутка з’явяцца ў КОШы</p>
+        )}
+      </section>
+
       <section id="new" className="mx-auto max-w-[1500px] px-5 py-12 lg:px-10">
         <div className="mb-6 flex items-end justify-between">
           <div>
@@ -1290,7 +1331,7 @@ export default function Home() {
         </div>
         <CarouselRow
           items={
-            approvedMedia.length ? getFreshMedia(approvedMedia) : freshMedia
+            approvedMedia.length || cultureMedia.length ? getFreshMedia([...approvedMedia, ...cultureMedia]) : freshMedia
           }
         />
       </section>

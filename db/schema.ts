@@ -81,3 +81,4 @@ export const requestLimitsSchema = `CREATE TABLE IF NOT EXISTS request_limits (
   request_count INTEGER NOT NULL,
   expires_at TEXT NOT NULL
 )`;
+export { cultureItemsSchema } from '@/lib/culture-items';
