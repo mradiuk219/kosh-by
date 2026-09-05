@@ -82,3 +82,8 @@ export const requestLimitsSchema = `CREATE TABLE IF NOT EXISTS request_limits (
   expires_at TEXT NOT NULL
 )`;
 export { cultureItemsSchema } from '@/lib/culture-items';
+export const cultureCandidatesSchema = `CREATE TABLE culture_candidates (
+ id TEXT PRIMARY KEY, canonical_key TEXT NOT NULL UNIQUE, kind TEXT NOT NULL,
+ title TEXT NOT NULL, release_year INTEGER NOT NULL, author TEXT NOT NULL,
+ description TEXT NOT NULL, url TEXT NOT NULL, banner_source_url TEXT,
+ source_label TEXT NOT NULL, status TEXT NOT NULL, discovered_at TEXT NOT NULL, reviewed_at TEXT)`;
