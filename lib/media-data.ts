@@ -1,4 +1,5 @@
 export type Media = {
+  id?: string;
   title: string;
   creator: string;
   platform: string;
@@ -14,6 +15,12 @@ export type Media = {
   releaseYear?: number;
   author?: string;
 };
+
+// Titles and translated platform labels are not identities: remakes can share both.
+export function mediaKey(item: Media): string {
+  return JSON.stringify([item.contentKind ?? 'channel', item.platform,
+    item.id ?? item.url ?? [item.title, item.author, item.releaseYear, item.creator]]);
+}
 
 const PLATFORM_BY_HOST = [
   ['YouTube', ['youtube.com', 'youtu.be']],

@@ -7,6 +7,7 @@ import { ArrowLeft, Search, SlidersHorizontal, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { parseCategories } from '@/lib/categories';
+import { mediaKey } from '@/lib/media-data';
 import { fetchCatalogData, MediaCard, media, type Media } from './home-client';
 
 const platforms = catalogPlatforms;
@@ -234,7 +235,7 @@ export default function CatalogPage() {
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                 {results.map((item) => (
                   <MediaCard
-                    key={`${t(item.platform)}-${item.title}`}
+                    key={mediaKey(item)}
                     item={item}
                     fluid
                     destination="author"

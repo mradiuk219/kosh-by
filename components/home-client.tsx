@@ -41,7 +41,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 
-import { media, bg, normalizeMedia, type Media } from '@/lib/media-data';
+import { media, bg, normalizeMedia, mediaKey, type Media } from '@/lib/media-data';
 export { media, type Media } from '@/lib/media-data';
 const filters = ['Усё', 'YouTube', 'Instagram', 'TikTok', 'Twitch', 'Spotify'];
 const platformCounts = Object.fromEntries(
@@ -225,6 +225,7 @@ export async function fetchCatalogData() {
   ]);
   const cultureData = cultureResponse.ok ? await cultureResponse.json() as { items?: Array<{ id:string; kind:'movie'|'book'; title:string; release_year:number; author:string; description:string; url:string; banner_url:string|null; updated_at:string }> } : { items: [] };
   const culture = (cultureData.items ?? []).map((item): Media => ({
+    id: item.id,
     title: item.title, creator: item.description,
     platform: item.kind === 'movie' ? 'Кіно' : 'Кнігі',
     category: item.kind === 'movie' ? 'Кіно' : 'Кнігі',
@@ -460,7 +461,7 @@ function CarouselRow({ items }: { items: Media[] }) {
         className="flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth pb-5 pr-10 touch-pan-x [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {items.map((item) => (
-          <MediaCard key={`${t(item.platform)}-${item.title}`} item={item} />
+          <MediaCard key={mediaKey(item)} item={item} />
         ))}
       </div>
       {showControls && (
