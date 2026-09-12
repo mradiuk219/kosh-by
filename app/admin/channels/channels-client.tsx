@@ -30,8 +30,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { parseCategories } from '@/lib/categories';
 import { channelIdentity } from '@/lib/channel-identity';
-import { media } from '@/app/page';
-import type { ProfileRecord } from '@/app/page';
+import { media } from '@/components/home-client';
+import type { ProfileRecord } from '@/components/home-client';
 import RefreshMetadataButton from '@/app/admin/refresh-metadata-button';
 
 type Channel = {
@@ -266,6 +266,7 @@ export default function AdminChannelsPage() {
             КОШ<span className="text-primary">.</span>
           </a>
           <span className="text-sm text-white/35">/ Кіраванне каналамі</span>
+          <a href="/admin/authors" className="text-sm text-sky-400">Гульні YouTube-аўтараў</a>
           <Button
             render={<a href="/admin" />}
             variant="ghost"

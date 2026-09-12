@@ -1,4 +1,5 @@
 'use client';
+import VisitorsPanel from './visitors-panel';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
@@ -214,6 +215,7 @@ export default function AdminPage() {
         </div>
       </header>
       <div className="mx-auto max-w-6xl px-5 py-10">
+        {!forbidden && <VisitorsPanel />}
         {!forbidden && !loading && <SocialDiscoveryPanel />}
         {!forbidden && (
           <section className="mb-10 rounded-3xl border border-white/10 bg-white/4 p-5 sm:p-7">

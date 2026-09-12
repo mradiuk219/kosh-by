@@ -10,6 +10,7 @@ export const profileMetadataSchema = `CREATE TABLE profile_metadata (
  manual_avatar_url TEXT
 );`;
 export const instagramFetchStateSchema = `CREATE TABLE instagram_fetch_state (id TEXT PRIMARY KEY, next_attempt_at INTEGER NOT NULL);`;
+export { visitorSchema } from '@/lib/visitor-stats';
 
 export const submissionsSchema = `CREATE TABLE IF NOT EXISTS submissions (
   id TEXT PRIMARY KEY,
@@ -82,6 +83,12 @@ export const requestLimitsSchema = `CREATE TABLE IF NOT EXISTS request_limits (
   expires_at TEXT NOT NULL
 )`;
 export { cultureItemsSchema } from '@/lib/culture-items';
+export const authorDetailsSchema = `CREATE TABLE author_details (
+ canonical_key TEXT PRIMARY KEY,
+ games_json TEXT NOT NULL DEFAULT '[]',
+ latest_json TEXT,
+ next_check INTEGER NOT NULL DEFAULT 0
+)`;
 export const cultureCandidatesSchema = `CREATE TABLE culture_candidates (
  id TEXT PRIMARY KEY, canonical_key TEXT NOT NULL UNIQUE, kind TEXT NOT NULL,
  title TEXT NOT NULL, release_year INTEGER NOT NULL, author TEXT NOT NULL,

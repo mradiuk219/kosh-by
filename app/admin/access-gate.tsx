@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { chatGPTSignInPath } from '@/app/chatgpt-auth';
 
 type AdminAccessGateProps = {
-  returnTo: '/admin' | '/admin/channels' | '/admin/culture';
+  returnTo: '/admin' | '/admin/channels' | '/admin/culture' | '/admin/authors';
   signedInEmail?: string | null;
 };
 
