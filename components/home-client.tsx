@@ -1,6 +1,6 @@
 'use client';
 import {authorPath} from '@/lib/author-identity';
-import {TopicLinks} from './discovery-nav';
+import {HomeTopicLinks} from './discovery-nav';
 import { useLanguage, LanguageSwitch } from '@/components/language';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -325,9 +325,13 @@ function formatSubscriberCount(value: number) {
 export function MediaCard({
   item,
   fluid = false,
+  destination = 'platform',
+  catalogReturnTo,
 }: {
   item: Media;
   fluid?: boolean;
+  destination?: 'platform' | 'author';
+  catalogReturnTo?: string;
 }) {
   const { t, locale, path } = useLanguage();
   const cultureCard = item.contentKind === 'movie' || item.contentKind === 'book';
@@ -406,10 +410,12 @@ export function MediaCard({
     </article>
   );
 
+  const internal = destination === 'author' && !cultureCard && item.platform === 'YouTube' ? authorPath(item.url) : null;
+  const href = internal ? path(internal) + (catalogReturnTo ? '?returnTo=' + encodeURIComponent(catalogReturnTo) : '') : item.url;
   return item.url ? (
     <a
-      href={item.platform === 'YouTube' ? path(authorPath(item.url) || '/catalog') : item.url}
-      target={item.platform === 'YouTube' ? undefined : '_blank'}
+      href={href}
+      target={internal ? undefined : '_blank'}
       rel="noreferrer"
       aria-label={`${t('Адкрыць')} «${item.title}» — ${t(item.platform)}`}
     >
@@ -676,12 +682,7 @@ export default function Home() {
                 </SheetTitle>
                 <SheetDescription>{t("Беларускі кантэнт у адным кошы")}</SheetDescription>
               </SheetHeader>
-              <nav className="grid gap-1 px-4 text-lg">
-                <a className="rounded-xl bg-white/6 px-4 py-3" href="#">{t("Галоўная")}</a>
-                <a className="rounded-xl px-4 py-3" href="#catalog">{t("Катэгорыі")}</a>
-                <a className="rounded-xl px-4 py-3" href="#new">{t("Новае")}</a>
-                <a className="rounded-xl px-4 py-3" href="#about">{t("Пра КОШ")}</a>
-              </nav>
+<HomeTopicLinks mobile />
             </SheetContent>
           </Sheet>
           <a
@@ -690,15 +691,7 @@ export default function Home() {
             aria-label={t("КОШ — галоўная")}
           >{t("КОШ")}<span className="text-primary">.</span>
           </a>
-          <nav
-            className="hidden items-center gap-6 text-sm text-white/62 md:flex"
-            aria-label={t("Асноўная навігацыя")}
-          >
-            <a className="font-medium text-white" href="#">{t("Галоўная")}</a>
-            <a className="transition hover:text-white" href="#catalog">{t("Катэгорыі")}</a>
-            <a className="transition hover:text-white" href="#new">{t("Новае")}</a>
-            <a className="transition hover:text-white" href="#about">{t("Пра КОШ")}</a>
-          </nav>
+<HomeTopicLinks />
           <div className="ml-auto hidden w-full max-w-xs md:block">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-white/40" />
@@ -725,7 +718,6 @@ export default function Home() {
         <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,#111821_3%,rgba(17,24,33,.82)_36%,rgba(17,24,33,.18)_72%,rgba(17,24,33,.56)_100%),linear-gradient(0deg,#151b24_0%,transparent_58%)]" />
         <div className="mx-auto flex min-h-[620px] max-w-[1500px] items-end px-5 pb-16 lg:px-10">
           <div className="max-w-3xl">
-            <TopicLinks />
             <h1 className="text-balance text-5xl font-black leading-[0.94] tracking-[-0.055em] text-white sm:text-7xl">{t("Беларускае —")}<br />{t("бліжэй, чым здаецца")}</h1>
             <p className="mt-6 max-w-xl text-base leading-relaxed text-white/70 sm:text-lg">{t("Відэа, падкасты, аўтары і гісторыі па-беларуску — сабраныя ў адным месцы, каб цікавае не гублялася ў стужцы.")}</p>
             <div className="mt-7 grid max-w-3xl grid-cols-2 gap-x-2 gap-y-3 sm:grid-cols-8">

@@ -1,5 +1,5 @@
 'use client';
-import {TopicLinks} from './discovery-nav';
+import {catalogPlatforms,readCatalogState,catalogHref,type SortKey} from '@/lib/catalog-state';
 import { useLanguage, LanguageSwitch } from '@/components/language';
 
 import { useEffect, useMemo, useState } from 'react';
@@ -9,8 +9,7 @@ import { Input } from '@/components/ui/input';
 import { parseCategories } from '@/lib/categories';
 import { fetchCatalogData, MediaCard, media, type Media } from './home-client';
 
-const platforms = ['YouTube', 'Instagram', 'TikTok', 'Twitch', 'Spotify', 'Кіно', 'Кнігі'];
-type SortKey = 'popular' | 'az' | 'za' | 'newest' | 'platform';
+const platforms = catalogPlatforms;
 
 export default function CatalogPage() {
   const { t, locale, path } = useLanguage();
@@ -19,6 +18,24 @@ export default function CatalogPage() {
   const [category, setCategory] = useState('Усе катэгорыі');
   const [sort, setSort] = useState<SortKey>('popular');
   const [catalogItems, setCatalogItems] = useState<Media[]>(media);
+  const [restored,setRestored] = useState(false);
+  const returnTo = catalogHref(path('/catalog'),{query,platform:selectedPlatform,category,sort});
+
+  useEffect(() => {
+    const restore = () => {
+      const saved=readCatalogState(window.location.search);
+      setQuery(saved.query); setSelectedPlatform(saved.platform);
+      setCategory(saved.category); setSort(saved.sort); setRestored(true);
+    };
+    restore();
+    window.addEventListener('popstate',restore);
+    window.addEventListener('pageshow',restore);
+    return () => {window.removeEventListener('popstate',restore);window.removeEventListener('pageshow',restore);};
+  },[]);
+  useEffect(() => {
+    if(restored && window.location.pathname+window.location.search !== returnTo)
+      window.history.replaceState(window.history.state,'',returnTo+window.location.hash);
+  },[returnTo,restored]);
 
   useEffect(() => {
     let active = true;
@@ -119,7 +136,6 @@ export default function CatalogPage() {
       </header>
 
       <div className="mx-auto max-w-[1500px] px-5 py-10 lg:px-10">
-        <TopicLinks />
         <div className="mb-9 max-w-3xl">
           <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-secondary">{t("Увесь КОШ")}</p>
           <h1 className="text-4xl font-black tracking-tight text-white sm:text-5xl">{t("Каталог беларускага кантэнту")}</h1>
@@ -221,6 +237,8 @@ export default function CatalogPage() {
                     key={`${t(item.platform)}-${item.title}`}
                     item={item}
                     fluid
+                    destination="author"
+                    catalogReturnTo={returnTo}
                   />
                 ))}
               </div>
