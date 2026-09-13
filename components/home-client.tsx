@@ -701,7 +701,7 @@ export default function Home() {
           alt={t("Ранішняе святло над краявідам")}
         />
         <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,#111821_3%,rgba(17,24,33,.82)_36%,rgba(17,24,33,.18)_72%,rgba(17,24,33,.56)_100%),linear-gradient(0deg,#151b24_0%,transparent_58%)]" />
-        <div className="mx-auto flex max-w-[1500px] px-5 pt-6 pb-16 lg:px-10">
+        <div className="mx-auto flex max-w-[1500px] px-5 py-16 lg:px-10">
           <div className="max-w-3xl">
             <h1 className="text-balance text-5xl font-black leading-[0.94] tracking-[-0.055em] text-white sm:text-7xl">{t("Беларускае —")}<br />{t("бліжэй, чым здаецца")}</h1>
             <p className="mt-6 max-w-xl text-base leading-relaxed text-white/70 sm:text-lg">{t("Відэа, падкасты, аўтары і гісторыі па-беларуску — сабраныя ў адным месцы, каб цікавае не гублялася ў стужцы.")}</p>
