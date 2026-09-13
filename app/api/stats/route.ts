@@ -6,6 +6,8 @@ import {
 
 type StatsPayload = {
   total: number;
+  movies: number;
+  books: number;
   platforms: Record<string, number>;
   topSubscribers: string;
   topChannel: string;
@@ -70,7 +72,12 @@ async function refreshStats(
     if (item.platform && item.platform in platforms)
       platforms[item.platform] += 1;
   }
+  const culture = await db
+    .prepare("SELECT kind, COUNT(*) AS count FROM culture_items WHERE status = 'published' GROUP BY kind")
+    .all<{ kind: string; count: number }>();
   const payload: StatsPayload = {
+    movies: culture.results?.find((item) => item.kind === 'movie')?.count ?? 0,
+    books: culture.results?.find((item) => item.kind === 'book')?.count ?? 0,
     total: Object.values(platforms).reduce((sum, value) => sum + value, 0),
     platforms,
     topSubscribers: formatSubscribers(subscriberCount),
@@ -112,6 +119,8 @@ export async function GET() {
   const previous = row ? (JSON.parse(row.payload) as StatsPayload) : undefined;
   const today = new Date().toISOString().slice(0, 10);
   const cacheIsValid =
+    typeof previous?.movies === 'number' &&
+    typeof previous?.books === 'number' &&
     row?.updated_at.slice(0, 10) === today &&
     parseStoredSubscribers(previous?.topSubscribers) === subscriberCount;
   const payload = cacheIsValid

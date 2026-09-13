@@ -44,14 +44,6 @@ import {
 import { media, bg, normalizeMedia, mediaKey, type Media } from '@/lib/media-data';
 export { media, type Media } from '@/lib/media-data';
 const filters = ['Усё', 'YouTube', 'Instagram', 'TikTok', 'Twitch', 'Spotify'];
-const platformCounts = Object.fromEntries(
-  filters
-    .slice(1)
-    .map((platform) => [
-      platform,
-      media.filter((item) => item.platform === platform).length,
-    ]),
-);
 type HeroStat = {
   value: number | string;
   label: string;
@@ -59,18 +51,15 @@ type HeroStat = {
   href?: string;
 };
 const initialHeroStats: HeroStat[] = [
-  { value: media.length, label: 'Колькасьць аўтараў' },
+  { value: '—', label: 'Колькасць аўтараў' },
   {
     value: '442 тыс.',
     label: 'Найбольш падпісантаў',
     channel: 'БЕЛСАТ NEWS',
     href: 'https://www.youtube.com/@belsat_news',
   },
-  { value: platformCounts.YouTube, label: 'Аўтараў з YouTube' },
-  { value: platformCounts.Twitch, label: 'Аўтараў з Twitch' },
-  { value: platformCounts.Instagram, label: 'Аўтараў з Instagram' },
-  { value: platformCounts.TikTok, label: 'Аўтараў з TikTok' },
-  { value: platformCounts.Spotify, label: 'Аўтараў са Spotify' },
+  { value: '—', label: 'Кіно' },
+  { value: '—', label: 'Кнігі' },
 ];
 
 function shuffleMedia(items: Media[]) {
@@ -616,27 +605,22 @@ export default function Home() {
         if (!response.ok || !active) return;
         const stats = (await response.json()) as {
           total: number;
-          platforms: Record<string, number>;
+          movies: number;
+          books: number;
           topSubscribers: string;
           topChannel: string;
           topChannelUrl: string;
         };
         setHeroStats([
-          { value: stats.total, label: 'Колькасьць аўтараў' },
+          { value: stats.total, label: 'Колькасць аўтараў' },
           {
             value: stats.topSubscribers,
             label: 'Найбольш падпісантаў',
             channel: stats.topChannel,
             href: stats.topChannelUrl,
           },
-          { value: stats.platforms.YouTube ?? 0, label: 'Аўтараў з YouTube' },
-          { value: stats.platforms.Twitch ?? 0, label: 'Аўтараў з Twitch' },
-          {
-            value: stats.platforms.Instagram ?? 0,
-            label: 'Аўтараў з Instagram',
-          },
-          { value: stats.platforms.TikTok ?? 0, label: 'Аўтараў з TikTok' },
-          { value: stats.platforms.Spotify ?? 0, label: 'Аўтараў са Spotify' },
+          { value: stats.movies, label: 'Кіно' },
+          { value: stats.books, label: 'Кнігі' },
         ]);
       })
       .catch(() => {});
@@ -721,11 +705,11 @@ export default function Home() {
           <div className="max-w-3xl">
             <h1 className="text-balance text-5xl font-black leading-[0.94] tracking-[-0.055em] text-white sm:text-7xl">{t("Беларускае —")}<br />{t("бліжэй, чым здаецца")}</h1>
             <p className="mt-6 max-w-xl text-base leading-relaxed text-white/70 sm:text-lg">{t("Відэа, падкасты, аўтары і гісторыі па-беларуску — сабраныя ў адным месцы, каб цікавае не гублялася ў стужцы.")}</p>
-            <div className="mt-7 grid max-w-3xl grid-cols-2 gap-x-2 gap-y-3 sm:grid-cols-8">
-              {heroStats.map((stat, index) => (
+            <div className="mt-7 grid max-w-3xl grid-cols-2 gap-x-2 gap-y-3 sm:grid-cols-4">
+              {heroStats.map((stat) => (
                 <div
                   key={t(stat.label)}
-                  className={`relative flex min-h-40 flex-col items-center justify-center px-2 text-center sm:col-span-2 ${index === 4 ? 'sm:col-start-2' : ''}`}
+                  className="relative flex min-h-40 flex-col items-center justify-center px-2 text-center"
                 >
                   <img
                     src="/honor-seal-ornament.png"
