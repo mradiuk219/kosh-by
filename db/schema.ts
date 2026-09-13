@@ -94,3 +94,6 @@ export const cultureCandidatesSchema = `CREATE TABLE culture_candidates (
  title TEXT NOT NULL, release_year INTEGER NOT NULL, author TEXT NOT NULL,
  description TEXT NOT NULL, url TEXT NOT NULL, banner_source_url TEXT,
  source_label TEXT NOT NULL, status TEXT NOT NULL, discovered_at TEXT NOT NULL, reviewed_at TEXT)`;
+export const cultureSourceStateSchema = `CREATE TABLE culture_source_state (
+ source_key TEXT PRIMARY KEY,
+ cursor INTEGER NOT NULL DEFAULT 0)`;
