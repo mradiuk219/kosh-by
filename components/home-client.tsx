@@ -704,7 +704,7 @@ export default function Home() {
         <div className="mx-auto flex max-w-[1500px] px-5 py-16 lg:px-10">
           <div className="max-w-3xl">
             <h1 className="text-balance text-5xl font-black leading-[0.94] tracking-[-0.055em] text-white sm:text-7xl">{t("Беларускае —")}<br />{t("бліжэй, чым здаецца")}</h1>
-            <p className="mt-6 max-w-xl text-base leading-relaxed text-white/70 sm:text-lg">{t("Відэа, падкасты, аўтары і гісторыі па-беларуску — сабраныя ў адным месцы, каб цікавае не гублялася ў стужцы.")}</p>
+            <p className="mt-6 max-w-xl text-base leading-relaxed text-white/70 sm:text-lg">{t("КОШ — каталог беларускамоўнага кантэнту: відэа і падкасты беларускіх аўтараў, фільмы, мультфільмы і кнігі па-беларуску.")}</p>
             <div className="mt-7 grid max-w-3xl grid-cols-2 gap-x-2 gap-y-3 sm:grid-cols-4">
               {heroStats.map((stat) => (
                 <div

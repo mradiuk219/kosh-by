@@ -41,7 +41,7 @@ export const en: Record<string,string> = {
   "Ранішняе святло над краявідам": "Morning light over the landscape",
   "Беларускае —": "Belarusian content —",
   "бліжэй, чым здаецца": "closer than you think",
-  "Відэа, падкасты, аўтары і гісторыі па-беларуску — сабраныя ў адным месцы, каб цікавае не гублялася ў стужцы.": "Videos, podcasts, creators and stories in Belarusian — all in one place, so great discoveries do not get lost in your feed.",
+  "КОШ — каталог беларускамоўнага кантэнту: відэа і падкасты беларускіх аўтараў, фільмы, мультфільмы і кнігі па-беларуску.": "KOSH is a catalog of Belarusian-language content: videos and podcasts by Belarusian creators, films, animation and books in Belarusian.",
   "Колькасьць аўтараў": "Total creators",
   "Колькасць аўтараў": "Total creators",
   "Найбольш падпісантаў": "Most followers",
