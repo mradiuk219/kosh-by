@@ -3,6 +3,7 @@ import {
   ensureChannelMetricsTable,
   refreshYoutubeMetrics,
 } from '@/lib/channel-metrics';
+import { waitUntil } from 'cloudflare:workers';
 
 type StatsPayload = {
   total: number;
@@ -96,15 +97,6 @@ async function refreshStats(
 
 export async function GET() {
   const db = await ensureSubmissionsTable();
-  await refreshYoutubeMetrics().catch(() => {});
-  const metricsDb = await ensureChannelMetricsTable();
-  const metric = await metricsDb
-    .prepare(
-      "SELECT subscriber_count FROM channel_metrics WHERE canonical_key = 'youtube:belsat_news'",
-    )
-    .all<{ subscriber_count: number }>();
-  const subscriberCount =
-    metric.results?.[0]?.subscriber_count ?? topChannel.fallback;
   await db
     .prepare(
       'CREATE TABLE IF NOT EXISTS homepage_stats (id TEXT PRIMARY KEY, payload TEXT NOT NULL, updated_at TEXT NOT NULL)',
@@ -118,6 +110,26 @@ export async function GET() {
   const row = cached.results?.[0];
   const previous = row ? (JSON.parse(row.payload) as StatsPayload) : undefined;
   const today = new Date().toISOString().slice(0, 10);
+  if (
+    typeof previous?.movies === 'number' &&
+    typeof previous?.books === 'number' &&
+    row?.updated_at.slice(0, 10) === today
+  ) {
+    waitUntil(refreshYoutubeMetrics().catch(() => {}));
+    return Response.json(previous, {
+      headers: { 'cache-control': 'public, max-age=300' },
+    });
+  }
+
+  await refreshYoutubeMetrics().catch(() => {});
+  const metricsDb = await ensureChannelMetricsTable();
+  const metric = await metricsDb
+    .prepare(
+      "SELECT subscriber_count FROM channel_metrics WHERE canonical_key = 'youtube:belsat_news'",
+    )
+    .all<{ subscriber_count: number }>();
+  const subscriberCount =
+    metric.results?.[0]?.subscriber_count ?? topChannel.fallback;
   const cacheIsValid =
     typeof previous?.movies === 'number' &&
     typeof previous?.books === 'number' &&
